@@ -4,7 +4,7 @@
 var Engine = window.ShadowChessEngine;
 
 var SYMBOLS = {
-  white: { K:'\u2654', Q:'\u2655', R:'\u2656', B:'\u2657', N:'\u2658', P:'\u2659' },
+  white: { K:'\u265A', Q:'\u265B', R:'\u265C', B:'\u265D', N:'\u265E', P:'\u265F' },
   black: { K:'\u265A', Q:'\u265B', R:'\u265C', B:'\u265D', N:'\u265E', P:'\u265F' },
 };
 var PIECE_ORDER = ['K','Q','R','B','N','P'];
@@ -40,6 +40,43 @@ var App = {
 
 var dom = {};
 
+var AudioFX = {
+  ctx: null,
+  init: function() {
+    if(!this.ctx) {
+      try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){}
+    }
+  },
+  play: function(type) {
+    if(!this.ctx) this.init();
+    if(!this.ctx) return;
+    if(this.ctx.state === 'suspended') this.ctx.resume();
+    var osc = this.ctx.createOscillator();
+    var gain = this.ctx.createGain();
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    var now = this.ctx.currentTime;
+    
+    if (type === 'move') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(450, now);
+      osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
+      gain.gain.setValueAtTime(0.5, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+      osc.start(now);
+      osc.stop(now + 0.1);
+    } else if (type === 'capture') {
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(150, now);
+      osc.frequency.exponentialRampToValueAtTime(40, now + 0.2);
+      gain.gain.setValueAtTime(0.4, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+      osc.start(now);
+      osc.stop(now + 0.2);
+    }
+  }
+};
+
 /* ═══════════════════════════════════════════════════════════════
    1.  HELPERS
    ═══════════════════════════════════════════════════════════════ */
@@ -71,6 +108,7 @@ function cacheDom(){
     'move-log','chat-messages','chat-input','chat-send-btn',
     'guide-panel','guide-title','guide-text','guide-skip-btn','guide-next-btn',
     'result-modal','result-kicker','result-title','result-text','result-primary','result-secondary',
+    'promotion-modal','promotion-title','promotion-text','promotion-opts',
     'toast',
   ];
   ids.forEach(function(id){ dom[id] = $(id); });
@@ -321,7 +359,10 @@ function syncOnline(state){
   if(state.phase==='playing'){
     var nv = state.game ? state.game.version : -1;
     if(App.activeScreen!=='game-screen'){ showScreen('game-screen'); updateGuide(); }
-    if(nv!==prev){ clearSel(); renderGameBoard(); updateGameUI(); renderMoveLog(); if(state.game.over) setTimeout(showResult,500); }
+    if(nv!==prev){ 
+      if (state.game && state.game.lastMove) AudioFX.play(state.game.lastMove.captured ? 'capture' : 'move');
+      clearSel(); renderGameBoard(); updateGameUI(); renderMoveLog(); if(state.game.over) setTimeout(showResult,500); 
+    }
     return;
   }
   if(App.activeScreen==='setup-screen') updateSetupStatus();
@@ -357,10 +398,11 @@ function scheduleCpu(){
     var act=Engine.chooseCpuAction(App.localGame,cpuC);
     if(act.useHide){ var h=Engine.hideAllPieces(App.localGame,cpuC); if(h.ok) App.localGame=h.game; }
     if(act.move){
-      var r=Engine.makeMove(App.localGame,cpuC,act.move.from,act.move.to);
+      var r=Engine.makeMove(App.localGame,cpuC,act.move.from,act.move.to,act.move.promotedTo||'Q');
       if(r.ok){
         App.localGame=r.game;
         App.moveLog.push({ piece:act.move.piece||'?', from:act.move.from, to:act.move.to, captured:r.game.lastMove?r.game.lastMove.captured:null, color:cpuC });
+        AudioFX.play(r.game.lastMove&&r.game.lastMove.captured ? 'capture' : 'move');
       }
     }
     renderGameBoard(); updateGameUI(); renderMoveLog();
@@ -501,9 +543,15 @@ function renderChat(messages){
    11.  GAME INTERACTION
    ═══════════════════════════════════════════════════════════════ */
 function onGameClick(row,col){
+  if(AudioFX.ctx===null) AudioFX.init();
   var view=getView(); if(!view||view.over||App.busy) return;
   var color=myColor(); if(view.turn!==color) return;
   if(App.selected && App.legalMoves.some(function(m){ return m[0]===row&&m[1]===col; })){
+    var movingPiece = view.board[App.selected[0]][App.selected[1]];
+    if (movingPiece && movingPiece.type === 'P' && (row === 0 || row === 7)) {
+       showPromotionModal(App.selected, [row, col]);
+       return;
+    }
     attemptMove(App.selected,[row,col]); return;
   }
   var cell=view.board[row][col];
@@ -520,23 +568,46 @@ function selectPiece(row,col){
 }
 function clearSel(){ App.selected=null; App.legalMoves=[]; }
 
-function attemptMove(from,to){
+function attemptMove(from,to,promotionChoice){
   App.busy=true; clearSel();
   if(App.mode==='cpu'){
-    var r=Engine.makeMove(App.localGame,App.localPlayerColor,from,to);
+    var r=Engine.makeMove(App.localGame,App.localPlayerColor,from,to,promotionChoice);
     if(r.ok){
       App.localGame=r.game;
       var lm=r.game.lastMove||{};
       App.moveLog.push({ piece:lm.piece||'?', from:from, to:to, captured:lm.captured, color:App.localPlayerColor });
+      AudioFX.play(lm.captured ? 'capture' : 'move');
       renderGameBoard(); updateGameUI(); renderMoveLog();
       if(App.localGame.over) setTimeout(showResult,500);
       else scheduleCpu();
     } else { showToast(r.error,true); }
     App.busy=false; return;
   }
-  api('POST','/api/rooms/'+App.online.roomId+'/move',{ token:App.online.token, from:from, to:to }).then(function(d){
+  api('POST','/api/rooms/'+App.online.roomId+'/move',{ token:App.online.token, from:from, to:to, promotion:promotionChoice }).then(function(d){
     if(d.error) showToast(d.error,true); else syncOnline(d);
   }).catch(function(){ showToast('Error',true); }).finally(function(){ App.busy=false; });
+}
+
+function showPromotionModal(from, to) {
+  var color = myColor();
+  var opts = dom['promotion-opts'];
+  opts.innerHTML = '';
+  ['Q','R','B','N'].forEach(function(pType) {
+     var btn = document.createElement('button');
+     btn.className = 'btn btn-ghost';
+     btn.style.fontSize = '2rem';
+     btn.style.padding = '10px 20px';
+     var sp = document.createElement('span');
+     sp.className = 'piece ' + color;
+     sp.textContent = SYMBOLS[color][pType];
+     btn.appendChild(sp);
+     btn.addEventListener('click', function(){
+       dom['promotion-modal'].classList.remove('open');
+       attemptMove(from, to, pType);
+     });
+     opts.appendChild(btn);
+  });
+  dom['promotion-modal'].classList.add('open');
 }
 
 function activateFog(){

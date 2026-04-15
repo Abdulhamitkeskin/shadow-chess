@@ -11,6 +11,7 @@
     white: [6, 7],
     black: [0, 1],
   };
+  const LONG_RANGE_VISION = 3;
   const PIECE_VALUES = {
     K: 99999,
     Q: 900,
@@ -533,7 +534,7 @@
     return isSquareAttacked(board, king[0], king[1], opposite(color));
   }
 
-  function applyMoveOnBoard(board, from, to) {
+  function applyMoveOnBoard(board, from, to, promotionChoice) {
     const [fromRow, fromCol] = from;
     const [toRow, toCol] = to;
     const piece = board[fromRow][fromCol];
@@ -567,7 +568,7 @@
     piece.revealedToOpponent = true;
 
     if (piece.type === "P" && (toRow === 0 || toRow === 7)) {
-      piece.type = "Q";
+      piece.type = promotionChoice && ["Q", "R", "B", "N"].includes(promotionChoice) ? promotionChoice : "Q";
       piece.revealedToOpponent = true;
     }
 
@@ -610,6 +611,86 @@
     return false;
   }
 
+  function computeVision(game) {
+    const board = game.board;
+    for (let row = 0; row < 8; row += 1) {
+      for (let col = 0; col < 8; col += 1) {
+        const piece = board[row][col];
+        if (!piece || piece.type === "K" || piece.revealedToOpponent) continue;
+        
+        let visible = false;
+        const pieceColor = piece.color;
+        const enemyColor = opposite(pieceColor);
+        const direction = enemyColor === "white" ? -1 : 1;
+        
+        // Is this piece being seen by any enemy piece?
+        // Let's reverse check to be easy, or iterate all enemies.
+        // It's safer to iterate all enemies and reveal what they see.
+      }
+    }
+  }
+
+  function applyVision(game) {
+    const board = game.board;
+    for (let row = 0; row < 8; row += 1) {
+      for (let col = 0; col < 8; col += 1) {
+        const piece = board[row][col];
+        if (!piece) continue;
+        
+        const pieceColor = piece.color;
+        const enemyColor = opposite(pieceColor);
+        const direction = pieceColor === "white" ? -1 : 1;
+
+        const revealSquare = (r, c) => {
+          if (inBounds(r, c)) {
+            const target = board[r][c];
+            if (target && target.color === enemyColor) {
+              target.revealedToOpponent = true;
+            }
+          }
+        };
+
+        if (piece.type === "P") {
+          revealSquare(row + direction, col - 1);
+          revealSquare(row + direction, col + 1);
+        } else if (piece.type === "N") {
+          for (const [deltaRow, deltaCol] of [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]]) {
+            revealSquare(row + deltaRow, col + deltaCol);
+          }
+        } else if (piece.type === "K") {
+          for (let dr = -1; dr <= 1; dr++) {
+            for (let dc = -1; dc <= 1; dc++) {
+              if (dr || dc) revealSquare(row + dr, col + dc);
+            }
+          }
+        } else {
+          const dirs = [];
+          if (piece.type === "B" || piece.type === "Q") dirs.push([-1,-1], [-1,1], [1,-1], [1,1]);
+          if (piece.type === "R" || piece.type === "Q") dirs.push([-1,0], [1,0], [0,-1], [0,1]);
+          
+          for (const [dr, dc] of dirs) {
+            let nextRow = row + dr;
+            let nextCol = col + dc;
+            let steps = 1;
+            while (inBounds(nextRow, nextCol) && steps <= LONG_RANGE_VISION) {
+              const target = board[nextRow][nextCol];
+              if (!target) {
+                 nextRow += dr;
+                 nextCol += dc;
+                 steps++;
+              } else {
+                 if (target.color === enemyColor) {
+                   target.revealedToOpponent = true;
+                 }
+                 break;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
   function createGame(whiteSetup, blackSetup) {
     const whiteCheck = validateSetup(whiteSetup, "white");
     if (!whiteCheck.ok) {
@@ -626,7 +707,7 @@
       throw new Error("A setup cannot begin with a king already in check.");
     }
 
-    return {
+    const game = {
       board,
       turn: "white",
       over: false,
@@ -647,9 +728,12 @@
         black: false,
       },
     };
+
+    applyVision(game);
+    return game;
   }
 
-  function makeMove(game, color, from, to) {
+  function makeMove(game, color, from, to, promotionChoice = null) {
     if (game.over) {
       return { ok: false, error: "Game is already over." };
     }
@@ -675,7 +759,7 @@
 
     const nextGame = cloneGame(game);
     const movingPiece = clonePiece(nextGame.board[fromRow][fromCol]);
-    const outcome = applyMoveOnBoard(nextGame.board, [fromRow, fromCol], [toRow, toCol]);
+    const outcome = applyMoveOnBoard(nextGame.board, [fromRow, fromCol], [toRow, toCol], promotionChoice);
 
     if (outcome.captured) {
       nextGame.capturedBy[color].push(outcome.captured.type);
@@ -688,6 +772,7 @@
       color,
       captured: outcome.captured ? outcome.captured.type : null,
       special: outcome.special,
+      promotedTo: outcome.movedPiece.type !== movingPiece.type ? outcome.movedPiece.type : null
     };
 
     if (outcome.captured && outcome.captured.type === "K") {
@@ -695,6 +780,7 @@
       nextGame.winner = color;
       nextGame.result = "king-capture";
       nextGame.version += 1;
+      applyVision(nextGame);
       return { ok: true, game: nextGame };
     }
 
@@ -715,6 +801,7 @@
     }
 
     nextGame.version += 1;
+    applyVision(nextGame);
     return { ok: true, game: nextGame };
   }
 
@@ -742,6 +829,7 @@
 
     nextGame.hideAvailable[color] = false;
     nextGame.version += 1;
+    applyVision(nextGame);
     return { ok: true, game: nextGame };
   }
 

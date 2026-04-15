@@ -318,7 +318,7 @@ async function handleApi(request, response, url) {
       return true;
     }
 
-    const result = Engine.makeMove(room.game, color, body.from, body.to);
+    const result = Engine.makeMove(room.game, color, body.from, body.to, body.promotion);
     if (!result.ok) {
       json(response, 400, { error: result.error });
       return true;
