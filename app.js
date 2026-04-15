@@ -991,23 +991,8 @@ function init(){
   dom['chat-send-btn'].addEventListener('click',sendChat);
   dom['chat-input'].addEventListener('keydown',function(e){ if(e.key==='Enter') sendChat(); });
   
-  // Mobile Chat Integration
-  dom['mobile-chat-fab'].addEventListener('click', function(){
-    dom['mobile-chat-overlay'].classList.add('open');
-    dom['mobile-chat-badge'].classList.add('hidden');
-    App.lastChatRead = Date.now();
-  });
-  dom['mobile-chat-close'].addEventListener('click', function(){
-    dom['mobile-chat-overlay'].classList.remove('open');
-    App.lastChatRead = Date.now();
-  });
-  dom['mobile-chat-send'].addEventListener('click', function(){
-    dom['chat-input'].value = dom['mobile-chat-input'].value;
-    dom['mobile-chat-input'].value = '';
-    sendChat();
-  });
-  dom['mobile-chat-input'].addEventListener('keydown',function(e){ if(e.key==='Enter') dom['mobile-chat-send'].click(); });
-
+  // Mobile Chat Integration has been moved to main chat tab
+  
   dom['tab-chat-btn'].addEventListener('click',function(){ 
     switchTab('chat'); 
     App.lastChatRead = Date.now();
