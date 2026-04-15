@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shadow Chess</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-theme="classic">
+  <div class="page-aura aura-left"></div>
+  <div class="page-aura aura-right"></div>
+
+  <div class="topbar">
+    <div class="brand-mini">
+      <span class="brand-mark">SC</span>
+      <span class="brand-name">Shadow Chess</span>
+    </div>
+    <div class="lang-switch">
+      <button class="lang-btn" id="lang-tr-btn">TR</button>
+      <button class="lang-btn" id="lang-en-btn">EN</button>
+    </div>
+  </div>
+
+  <main class="app-shell">
+    <!-- ═══ MENU ═══ -->
+    <section class="screen active" id="menu-screen">
+      <div class="menu-layout">
+        <article class="hero-card">
+          <p class="section-kicker" id="menu-kicker"></p>
+          <h1 id="menu-title"></h1>
+          <p class="hero-copy" id="menu-copy"></p>
+
+          <div class="menu-actions">
+            <button class="btn btn-primary" id="create-room-btn"></button>
+            <button class="btn btn-secondary" id="cpu-mode-btn"></button>
+            <button class="btn btn-ghost" id="open-tutorial-btn"></button>
+          </div>
+
+          <div class="join-card">
+            <label for="room-code-input" id="join-label"></label>
+            <div class="join-row">
+              <input id="room-code-input" type="text">
+              <button class="btn btn-ghost" id="join-room-btn"></button>
+            </div>
+          </div>
+
+          <div class="feature-grid">
+            <article class="feature-card">
+              <span class="feature-index">01</span>
+              <h2 id="feature-setup-title"></h2>
+              <p id="feature-setup-copy"></p>
+            </article>
+            <article class="feature-card">
+              <span class="feature-index">02</span>
+              <h2 id="feature-shadow-title"></h2>
+              <p id="feature-shadow-copy"></p>
+            </article>
+            <article class="feature-card">
+              <span class="feature-index">03</span>
+              <h2 id="feature-fog-title"></h2>
+              <p id="feature-fog-copy"></p>
+            </article>
+          </div>
+
+          <p class="menu-status" id="menu-status"></p>
+        </article>
+
+        <aside class="menu-side">
+          <div class="option-card">
+            <p class="option-label" id="color-label"></p>
+            <div class="color-picker" id="color-picker">
+              <button class="color-opt active" data-color="white" id="pick-white">
+                <span class="color-icon ci-white">&#9812;</span>
+                <span id="pick-white-label"></span>
+              </button>
+              <button class="color-opt" data-color="random" id="pick-random">
+                <span class="color-icon ci-random">?</span>
+                <span id="pick-random-label"></span>
+              </button>
+              <button class="color-opt" data-color="black" id="pick-black">
+                <span class="color-icon ci-black">&#9818;</span>
+                <span id="pick-black-label"></span>
+              </button>
+            </div>
+          </div>
+
+          <div class="option-card">
+            <p class="option-label" id="theme-label"></p>
+            <div class="theme-picker" id="theme-picker">
+              <button class="theme-opt active" data-theme="classic" title="Classic">
+                <span class="theme-swatch" style="background:#eeeed2"></span>
+                <span class="theme-swatch" style="background:#769656"></span>
+              </button>
+              <button class="theme-opt" data-theme="ocean" title="Ocean">
+                <span class="theme-swatch" style="background:#dee3e6"></span>
+                <span class="theme-swatch" style="background:#5e8ca8"></span>
+              </button>
+              <button class="theme-opt" data-theme="royal" title="Royal">
+                <span class="theme-swatch" style="background:#e8daf0"></span>
+                <span class="theme-swatch" style="background:#7b61a0"></span>
+              </button>
+              <button class="theme-opt" data-theme="walnut" title="Walnut">
+                <span class="theme-swatch" style="background:#f0d9b5"></span>
+                <span class="theme-swatch" style="background:#b58863"></span>
+              </button>
+            </div>
+          </div>
+
+          <div class="wraith-card compact">
+            <div class="wraith-portrait"><div class="wraith-face"></div></div>
+            <div>
+              <p class="wraith-name">Wraith</p>
+              <p class="wraith-copy" id="menu-wraith-copy"></p>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ═══ SETUP ═══ -->
+    <section class="screen" id="setup-screen">
+      <div class="setup-layout panel-surface">
+        <div class="panel-head">
+          <div>
+            <p class="section-kicker" id="setup-kicker"></p>
+            <h2 id="setup-title"></h2>
+            <p class="panel-copy" id="setup-subtitle"></p>
+          </div>
+          <button class="btn btn-ghost btn-small" id="setup-back-btn"></button>
+        </div>
+
+        <div class="setup-stage">
+          <div class="board-zone">
+            <div class="board-frame">
+              <div class="board board-setup" id="setup-board"></div>
+            </div>
+          </div>
+
+          <aside class="setup-sidebar">
+            <div class="info-card" id="setup-status"></div>
+
+            <div class="palette-card">
+              <div class="palette-head">
+                <div>
+                  <p class="palette-label" id="palette-title"></p>
+                  <p class="palette-copy" id="palette-copy"></p>
+                </div>
+                <button class="tool-btn" id="setup-eraser-btn"></button>
+              </div>
+              <div class="piece-palette" id="setup-palette"></div>
+              <p class="held-piece" id="setup-held-piece"></p>
+            </div>
+
+            <div class="share-box hidden" id="share-box">
+              <label for="share-link-input" id="share-label"></label>
+              <div class="join-row">
+                <input id="share-link-input" readonly>
+                <button class="btn btn-ghost btn-small" id="copy-link-btn"></button>
+              </div>
+            </div>
+
+            <div class="setup-actions">
+              <button class="btn btn-ghost" id="setup-clear-btn"></button>
+              <button class="btn btn-ghost" id="setup-default-btn"></button>
+              <button class="btn btn-primary" id="setup-ready-btn"></button>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ TUTORIAL (interactive board) ═══ -->
+    <section class="screen" id="tutorial-screen">
+      <div class="tut-layout">
+        <div class="tut-board-zone">
+          <div class="board-frame">
+            <div class="board" id="tutorial-board"></div>
+          </div>
+        </div>
+        <aside class="tut-panel" id="tut-panel">
+          <div class="wraith-portrait large"><div class="wraith-face"></div></div>
+          <p class="wraith-name">Wraith</p>
+          <div class="tut-speech" id="tut-speech"></div>
+          <p class="tut-step-ind" id="tut-step-ind"></p>
+          <div class="tut-actions">
+            <button class="btn btn-ghost btn-small" id="tut-skip-btn"></button>
+            <button class="btn btn-primary btn-small" id="tut-next-btn"></button>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ═══ GAME ═══ -->
+    <section class="screen" id="game-screen">
+      <div class="game-layout">
+        <article class="game-board-panel panel-surface">
+          <div class="player-strip top-strip">
+            <div class="player-info">
+              <span class="player-dot enemy-dot"></span>
+              <h3 id="enemy-name"></h3>
+            </div>
+            <div class="capture-strip" id="enemy-captured"></div>
+          </div>
+
+          <div class="board-frame game-frame">
+            <div class="board board-game" id="game-board"></div>
+          </div>
+
+          <div class="player-strip bottom-strip">
+            <div class="player-info">
+              <span class="player-dot self-dot"></span>
+              <h3 id="self-name"></h3>
+            </div>
+            <div class="capture-strip" id="self-captured"></div>
+          </div>
+        </article>
+
+        <aside class="game-sidebar panel-surface">
+          <span class="turn-badge" id="turn-badge"></span>
+          <p class="game-message" id="game-message"></p>
+
+          <div class="game-actions">
+            <button class="btn btn-accent btn-small" id="hide-btn"></button>
+            <button class="btn btn-ghost btn-small" id="extra-action-btn"></button>
+            <button class="btn btn-ghost btn-small hidden" id="rematch-btn"></button>
+          </div>
+
+          <div class="sidebar-tabs">
+            <button class="tab-btn active" id="tab-moves-btn"></button>
+            <button class="tab-btn" id="tab-chat-btn"></button>
+          </div>
+
+          <div class="tab-content">
+            <div class="tab-pane active" id="moves-panel">
+              <div class="move-log" id="move-log"></div>
+            </div>
+            <div class="tab-pane" id="chat-panel">
+              <div class="chat-messages" id="chat-messages"></div>
+              <div class="chat-input-row">
+                <input id="chat-input" type="text">
+                <button class="btn btn-ghost btn-small" id="chat-send-btn"></button>
+              </div>
+            </div>
+          </div>
+
+          <div class="wraith-card compact sidebar-wraith">
+            <div class="wraith-portrait"><div class="wraith-face"></div></div>
+            <div>
+              <p class="wraith-name">Wraith</p>
+              <p class="wraith-copy" id="game-wraith-copy"></p>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <!-- Guide (floating Wraith) -->
+  <aside class="guide-panel hidden" id="guide-panel">
+    <div class="wraith-card guide-card">
+      <div class="guide-top">
+        <div class="wraith-portrait"><div class="wraith-face"></div></div>
+        <div>
+          <p class="wraith-name">Wraith</p>
+          <p class="guide-title" id="guide-title"></p>
+        </div>
+      </div>
+      <p class="guide-text" id="guide-text"></p>
+      <div class="guide-actions">
+        <button class="btn btn-ghost btn-small" id="guide-skip-btn"></button>
+        <button class="btn btn-primary btn-small" id="guide-next-btn"></button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Result modal -->
+  <div class="modal" id="result-modal">
+    <div class="modal-card panel-surface">
+      <p class="section-kicker" id="result-kicker"></p>
+      <h2 id="result-title"></h2>
+      <p id="result-text"></p>
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="result-primary"></button>
+        <button class="btn btn-ghost" id="result-secondary"></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="engine.js"></script>
+  <script src="i18n.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

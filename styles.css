@@ -1,0 +1,300 @@
+/* ═══════════════════════════════════════════
+   Shadow Chess — Design System
+   ═══════════════════════════════════════════ */
+
+:root {
+  --bg: #f6f2e8;
+  --bg-deep: #dfd2b8;
+  --ink: #26211d;
+  --muted: #655d53;
+  --panel: rgba(255,252,245,.92);
+  --panel-strong: rgba(253,248,238,.98);
+  --line: rgba(62,51,38,.12);
+  --gold: #c9903a;
+  --gold-deep: #8d5c20;
+  --green: #769656;
+  --green-deep: #5d7b40;
+  --accent: #2a6f97;
+  --accent-deep: #1c4e6c;
+  --danger: #9e4b4b;
+  --shadow: 0 24px 60px rgba(68,52,33,.16);
+  /* board — overridden by data-theme */
+  --sq-light: #eeeed2;
+  --sq-dark: #769656;
+}
+
+/* ── Board Themes ───────────────────────── */
+body[data-theme="classic"]{ --sq-light:#eeeed2; --sq-dark:#769656; }
+body[data-theme="ocean"]  { --sq-light:#dee3e6; --sq-dark:#5e8ca8; }
+body[data-theme="royal"]  { --sq-light:#e8daf0; --sq-dark:#7b61a0; }
+body[data-theme="walnut"] { --sq-light:#f0d9b5; --sq-dark:#b58863; }
+
+/* ── Reset ──────────────────────────────── */
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{
+  color:var(--ink);
+  font-family:"Manrope",sans-serif;
+  background:
+    radial-gradient(circle at top left,rgba(201,144,58,.18),transparent 26%),
+    radial-gradient(circle at top right,rgba(42,111,151,.12),transparent 24%),
+    linear-gradient(180deg,#fbf7ef 0%,#f3ecdd 50%,#ede2cf 100%);
+  overflow-x:hidden;
+}
+button,input{font:inherit}
+button{cursor:pointer}
+
+/* ── Background aura ───────────────────── */
+.page-aura{position:fixed;width:420px;height:420px;border-radius:50%;filter:blur(90px);opacity:.45;pointer-events:none}
+.aura-left{top:-120px;left:-100px;background:rgba(201,144,58,.26)}
+.aura-right{top:40px;right:-120px;background:rgba(42,111,151,.18)}
+
+/* ── Topbar ─────────────────────────────── */
+.topbar{position:sticky;top:0;z-index:8;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:10px 24px 0}
+.brand-mini{display:inline-flex;align-items:center;gap:10px}
+.brand-mark{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--gold),var(--gold-deep));color:#fff7ea;font-weight:800;font-size:.85rem}
+.brand-name{font-family:"Fraunces",serif;font-size:1rem}
+.lang-switch{display:inline-flex;gap:6px;padding:4px;border-radius:999px;background:rgba(255,250,241,.75);border:1px solid var(--line);box-shadow:0 6px 16px rgba(68,52,33,.06)}
+.lang-btn{min-width:46px;border:none;border-radius:999px;padding:7px 10px;background:transparent;color:var(--muted);font-weight:700;font-size:.82rem}
+.lang-btn.active{background:var(--ink);color:#fffdf7}
+
+/* ── App shell ──────────────────────────── */
+.app-shell{position:relative;z-index:1;padding:10px 24px 18px}
+.screen{display:none}
+.screen.active{display:block}
+
+/* ── Shared layout widths ───────────────── */
+.menu-layout,.setup-layout,.tut-layout,.game-layout{width:min(1320px,100%);margin:0 auto}
+
+/* ═══════════════════════════════════════════
+   BUTTONS
+   ═══════════════════════════════════════════ */
+.btn,.tool-btn{border:1px solid transparent;border-radius:999px;min-height:42px;padding:10px 16px;font-weight:600;transition:transform .18s,box-shadow .18s,background .18s,border-color .18s}
+.btn:hover:not(:disabled),.tool-btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 8px 18px rgba(68,52,33,.1)}
+.btn:disabled,.tool-btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-primary{color:#fff8ef;background:linear-gradient(135deg,var(--gold),var(--gold-deep))}
+.btn-secondary{color:#f3fbff;background:linear-gradient(135deg,var(--accent),var(--accent-deep))}
+.btn-accent{color:#fff;background:linear-gradient(135deg,#c56a3a,#8e4520)}
+.btn-ghost,.tool-btn{color:var(--ink);background:rgba(255,255,255,.62);border-color:var(--line)}
+.btn-small{min-height:36px;padding:8px 14px;font-size:.88rem}
+
+/* ═══════════════════════════════════════════
+   SURFACES
+   ═══════════════════════════════════════════ */
+.hero-card,.panel-surface,.join-card,.feature-card,.option-card,.wraith-card,.guide-card{background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow);backdrop-filter:blur(12px)}
+.hero-card,.panel-surface{border-radius:26px}
+.hero-card,.panel-surface,.game-board-panel,.game-sidebar{padding:clamp(18px,3vw,28px)}
+.join-card,.option-card,.feature-card{border-radius:20px;padding:16px}
+
+.section-kicker{margin:0 0 8px;font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold-deep);font-weight:800}
+h1,h2,h3,.wraith-name{margin:0;font-family:"Fraunces",serif}
+h1{max-width:520px;font-size:clamp(2.6rem,7vw,4.4rem);line-height:.92}
+h2{font-size:clamp(1.6rem,4vw,2.4rem)}
+h3{font-size:1.15rem}
+.hero-copy,.panel-copy,.menu-status,.feature-card p,.wraith-copy,.palette-copy,.held-piece,.game-message,.guide-text,.tut-speech,#result-text,.info-card{color:var(--muted);line-height:1.65}
+
+/* ── Action rows ────────────────────────── */
+.menu-actions,.setup-actions,.game-actions,.guide-actions,.tut-actions,.modal-actions{display:flex;gap:10px;flex-wrap:wrap}
+.menu-actions{margin:22px 0 18px}
+
+/* ═══════════════════════════════════════════
+   MENU SCREEN
+   ═══════════════════════════════════════════ */
+.menu-layout{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(260px,340px);gap:20px}
+.join-card label{display:block;margin-bottom:8px;font-weight:700;font-size:.92rem}
+.join-row{display:flex;gap:8px}
+.join-row input,.share-box input{width:100%;min-width:0;border:1px solid var(--line);border-radius:16px;padding:10px 12px;background:rgba(255,255,255,.74);color:var(--ink)}
+.feature-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:8px}
+.feature-index{display:inline-flex;margin-bottom:6px;color:var(--gold-deep);font-size:.76rem;letter-spacing:.16em;font-weight:800}
+.menu-side{display:grid;gap:14px;align-content:start}
+.menu-status{min-height:22px;margin-top:12px}
+
+/* ── Color picker ───────────────────────── */
+.option-label{margin:0 0 10px;font-weight:800;font-size:.9rem}
+.color-picker{display:flex;gap:8px}
+.color-opt{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 6px 10px;border-radius:14px;border:2px solid var(--line);background:rgba(255,255,255,.5);transition:all .2s}
+.color-opt.active{border-color:var(--gold);background:rgba(201,144,58,.08)}
+.color-opt span:last-child{font-size:.78rem;font-weight:700;color:var(--muted)}
+.color-icon{font-size:1.7rem;line-height:1}
+.ci-white{color:#bbb;text-shadow:0 1px 3px rgba(0,0,0,.25)}
+.ci-black{color:#1a1a1a}
+.ci-random{font-family:"Fraunces",serif;font-weight:700;color:var(--gold-deep);font-size:1.3rem}
+
+/* ── Theme picker ───────────────────────── */
+.theme-picker{display:flex;gap:8px}
+.theme-opt{display:flex;width:52px;height:34px;border-radius:10px;overflow:hidden;border:2px solid var(--line);cursor:pointer;padding:0;background:none;transition:all .2s}
+.theme-opt.active{border-color:var(--gold);box-shadow:0 0 0 2px rgba(201,144,58,.3)}
+.theme-swatch{flex:1}
+
+/* ═══════════════════════════════════════════
+   WRAITH CHARACTER
+   ═══════════════════════════════════════════ */
+.wraith-card{display:grid;gap:10px;justify-items:center;text-align:center;padding:16px;border-radius:22px;background:radial-gradient(circle at top,rgba(42,111,151,.12),transparent 44%),rgba(255,252,245,.96)}
+.wraith-card.compact{grid-template-columns:64px 1fr;align-items:center;justify-items:start;text-align:left}
+.wraith-portrait{position:relative;width:64px;height:78px;border-radius:999px 999px 24px 24px;overflow:hidden;background:radial-gradient(circle at 50% 16%,rgba(255,255,255,.85),rgba(255,255,255,0) 34%),linear-gradient(180deg,rgba(237,248,255,.95),rgba(142,186,210,.72));box-shadow:inset 0 -10px 20px rgba(28,78,108,.18),0 8px 20px rgba(42,111,151,.16)}
+.wraith-portrait::before,.wraith-portrait::after{content:"";position:absolute;bottom:-10px;width:24px;height:36px;border-radius:999px;background:rgba(233,246,255,.96)}
+.wraith-portrait::before{left:8px}
+.wraith-portrait::after{right:8px}
+.wraith-portrait.large{width:120px;height:150px}
+.wraith-face{position:absolute;top:34%;left:50%;width:36px;height:20px;transform:translateX(-50%)}
+.wraith-face::before,.wraith-face::after{content:"";position:absolute;top:0;width:10px;height:10px;border-radius:50%;background:#1f536f;box-shadow:0 0 12px rgba(31,83,111,.24)}
+.wraith-face::before{left:4px}
+.wraith-face::after{right:4px}
+.wraith-name{font-size:1.4rem}
+.sidebar-wraith{margin-top:auto}
+
+/* ═══════════════════════════════════════════
+   SETUP SCREEN
+   ═══════════════════════════════════════════ */
+.panel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:14px}
+.setup-stage{display:grid;grid-template-columns:minmax(0,1.06fr) minmax(280px,340px);gap:18px}
+.setup-sidebar{display:grid;gap:12px;align-content:start}
+.board-zone{min-width:0}
+
+/* ── Board frame ────────────────────────── */
+.board-frame{padding:12px;border-radius:26px;background:linear-gradient(135deg,rgba(247,240,223,.94),rgba(210,190,160,.9)),var(--panel-strong);border:1px solid rgba(76,57,33,.12);box-shadow:inset 0 2px 0 rgba(255,255,255,.5),inset 0 -6px 14px rgba(98,73,40,.1),0 18px 32px rgba(68,52,33,.14)}
+.game-frame{background:linear-gradient(135deg,rgba(235,223,198,.96),rgba(181,147,106,.94)),var(--panel-strong)}
+
+/* ── Board grid ─────────────────────────── */
+.board{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));overflow:hidden;border-radius:16px;aspect-ratio:1;border:2px solid rgba(76,57,33,.14);box-shadow:0 12px 22px rgba(68,52,33,.16)}
+
+/* ── Squares ────────────────────────────── */
+.square{position:relative;display:flex;align-items:center;justify-content:center;aspect-ratio:1;border:none;padding:0;user-select:none;background:var(--sq-light)}
+.square.dark{background:var(--sq-dark)}
+.square.setup-own{outline:2px solid rgba(42,111,151,.12);outline-offset:-2px}
+.square.selected{box-shadow:inset 0 0 0 3px rgba(255,255,255,.78)}
+.square.last-from,.square.last-to{box-shadow:inset 0 0 0 999px rgba(201,144,58,.22)}
+.square.move-target::after,.square.capture-target::after{content:"";position:absolute;border-radius:50%}
+.square.move-target::after{width:26%;height:26%;background:rgba(0,0,0,.14)}
+.square.capture-target::after{inset:10%;border:3.5px solid rgba(0,0,0,.18)}
+.square.tut-highlight{box-shadow:inset 0 0 0 3px var(--gold),0 0 12px rgba(201,144,58,.35)}
+
+.coord{position:absolute;font-size:.62rem;font-weight:800;opacity:.55}
+.coord-rank{top:3px;left:4px}
+.coord-file{right:4px;bottom:3px}
+
+/* ── Pieces ─────────────────────────────── */
+.piece{font-family:"Fraunces",serif;font-size:clamp(1.8rem,3.8vw,2.6rem);line-height:1;pointer-events:none}
+.piece.white{color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.45),0 0 1px rgba(0,0,0,.35);-webkit-text-stroke:.7px rgba(50,40,30,.32)}
+.piece.black{color:#16232d;text-shadow:0 1px 3px rgba(0,0,0,.08)}
+.piece.mystery{display:inline-flex;align-items:center;justify-content:center;width:clamp(28px,4.2vw,40px);height:clamp(28px,4.2vw,40px);border-radius:50%;background:rgba(22,35,45,.72);color:#f5fbff;font-size:1rem;box-shadow:0 6px 14px rgba(22,35,45,.2);-webkit-text-stroke:0}
+
+/* ── Palette ────────────────────────────── */
+.info-card,.palette-card,.share-box{padding:14px;border-radius:18px;background:rgba(255,255,255,.62);border:1px solid var(--line)}
+.palette-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:10px}
+.palette-label{margin:0;font-weight:800;font-size:.92rem}
+.palette-copy{margin:4px 0 0;font-size:.85rem}
+.piece-palette{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.palette-piece{display:grid;justify-items:center;gap:4px;padding:10px 8px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.72)}
+.palette-piece.active{border-color:rgba(42,111,151,.42);box-shadow:inset 0 0 0 1px rgba(42,111,151,.24)}
+.palette-piece.empty{opacity:.4}
+.palette-count{font-size:.74rem;font-weight:800;color:var(--muted)}
+.held-piece{min-height:20px;margin:10px 0 0;font-size:.88rem}
+.hidden{display:none!important}
+
+/* ═══════════════════════════════════════════
+   TUTORIAL SCREEN
+   ═══════════════════════════════════════════ */
+.tut-layout{display:grid;grid-template-columns:1fr 320px;gap:18px;height:calc(100vh - 70px)}
+.tut-board-zone{display:flex;align-items:center;justify-content:center;min-height:0}
+.tut-board-zone .board-frame{width:min(100%,calc(100vh - 120px))}
+.tut-panel{display:flex;flex-direction:column;align-items:center;gap:14px;padding:24px;border-radius:26px;background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow);text-align:center;overflow-y:auto}
+.tut-speech{padding:14px;border-radius:16px;background:rgba(42,111,151,.06);border:1px solid rgba(42,111,151,.12);color:var(--ink);line-height:1.7;font-size:.95rem}
+.tut-step-ind{font-size:.8rem;font-weight:800;color:var(--muted)}
+.tut-actions{display:flex;gap:10px;width:100%}
+.tut-actions .btn{flex:1}
+
+/* ═══════════════════════════════════════════
+   GAME SCREEN
+   ═══════════════════════════════════════════ */
+.game-layout{display:grid;grid-template-columns:1fr 340px;gap:16px;height:calc(100vh - 70px);align-items:stretch}
+.game-board-panel,.game-sidebar{border-radius:22px;overflow:hidden}
+.game-board-panel{display:flex;flex-direction:column;min-height:0}
+.game-frame{flex:1;min-height:0;display:flex;align-items:center;justify-content:center}
+.game-frame .board{width:min(100%,calc(100vh - 230px))}
+
+/* ── Player strips ──────────────────────── */
+.player-strip{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:4px 0}
+.top-strip{margin-bottom:8px}
+.bottom-strip{margin-top:8px}
+.player-info{display:flex;align-items:center;gap:8px}
+.player-dot{width:10px;height:10px;border-radius:50%;border:2px solid var(--line)}
+.self-dot{background:var(--green);border-color:var(--green-deep)}
+.enemy-dot{background:var(--danger);border-color:#7a3a3a}
+
+/* ── Capture strip ──────────────────────── */
+.capture-strip{display:flex;align-items:center;gap:1px;min-height:28px;font-size:1.25rem;flex-wrap:wrap}
+.capture-strip .cap-piece{opacity:.85}
+.capture-diff{font-size:.82rem;font-weight:800;color:var(--muted);margin-left:4px}
+
+/* ── Sidebar ────────────────────────────── */
+.game-sidebar{display:flex;flex-direction:column;gap:8px;padding:16px!important}
+.turn-badge{display:inline-flex;width:fit-content;padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.76);border:1px solid rgba(42,111,151,.18);color:var(--accent-deep);font-weight:800;font-size:.85rem}
+.game-message{min-height:36px;font-size:.92rem}
+.game-actions{gap:6px}
+.game-actions .btn{font-size:.82rem}
+
+/* ── Tabs ───────────────────────────────── */
+.sidebar-tabs{display:flex;border-bottom:2px solid var(--line);margin:4px 0 0}
+.tab-btn{flex:1;padding:8px 6px;background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-2px;font-weight:700;font-size:.84rem;color:var(--muted);transition:.18s}
+.tab-btn.active{color:var(--ink);border-bottom-color:var(--gold)}
+.tab-content{flex:1;min-height:0;position:relative}
+.tab-pane{display:none;height:100%;overflow-y:auto}
+.tab-pane.active{display:flex;flex-direction:column}
+
+/* ── Move log ───────────────────────────── */
+.move-log{padding:4px 2px;flex:1;overflow-y:auto;font-size:.84rem}
+.move-row{display:grid;grid-template-columns:28px 1fr 1fr;gap:2px;padding:3px 4px;border-radius:6px}
+.move-row:hover{background:rgba(0,0,0,.04)}
+.move-num{color:var(--muted);text-align:right;padding-right:6px;font-weight:700}
+.move-cell{padding:2px 6px;border-radius:4px;font-weight:600;cursor:default}
+.move-cell.last{background:rgba(201,144,58,.14)}
+
+/* ── Chat ───────────────────────────────── */
+.chat-messages{flex:1;overflow-y:auto;padding:6px;display:flex;flex-direction:column;gap:4px}
+.chat-msg{padding:6px 10px;border-radius:12px;font-size:.84rem;max-width:85%;word-break:break-word}
+.chat-msg.mine{align-self:flex-end;background:rgba(42,111,151,.1);color:var(--accent-deep)}
+.chat-msg.theirs{align-self:flex-start;background:rgba(0,0,0,.05);color:var(--ink)}
+.chat-input-row{display:flex;gap:6px;padding:6px 0 0;border-top:1px solid var(--line);margin-top:auto}
+.chat-input-row input{flex:1;min-width:0;border:1px solid var(--line);border-radius:12px;padding:7px 10px;background:rgba(255,255,255,.74);color:var(--ink);font-size:.84rem}
+
+/* ═══════════════════════════════════════════
+   GUIDE PANEL (floating Wraith)
+   ═══════════════════════════════════════════ */
+.guide-panel{position:fixed;right:18px;bottom:18px;z-index:9;width:min(340px,calc(100vw - 24px))}
+.guide-card{padding:16px}
+.guide-top{display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center}
+.guide-title{margin:0;color:var(--gold-deep);font-weight:800;font-size:.9rem}
+
+/* ═══════════════════════════════════════════
+   MODAL
+   ═══════════════════════════════════════════ */
+.modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:24px;background:rgba(57,47,35,.24);backdrop-filter:blur(10px);z-index:10}
+.modal.open{display:flex}
+.modal-card{width:min(480px,100%);text-align:center}
+.modal-actions{justify-content:center;margin-top:18px}
+
+/* ═══════════════════════════════════════════
+   TOAST
+   ═══════════════════════════════════════════ */
+.toast{position:fixed;left:50%;bottom:18px;transform:translate(-50%,14px);opacity:0;pointer-events:none;padding:10px 16px;border-radius:999px;background:rgba(33,30,28,.92);color:#fff8ee;box-shadow:0 14px 28px rgba(68,52,33,.2);transition:opacity .18s,transform .18s;z-index:11;font-size:.88rem}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.warn{background:rgba(121,62,62,.95)}
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════ */
+@media(max-width:1100px){
+  .menu-layout,.setup-stage,.tut-layout,.game-layout{grid-template-columns:1fr}
+  .game-layout,.tut-layout{height:auto}
+  .game-frame .board,.tut-board-zone .board-frame{width:100%}
+}
+@media(max-width:760px){
+  .topbar{padding:10px 14px 0}
+  .app-shell{padding:8px 14px 18px}
+  .join-row,.menu-actions,.setup-actions,.game-actions,.guide-actions,.tut-actions,.modal-actions{flex-direction:column}
+  .feature-grid,.piece-palette{grid-template-columns:1fr 1fr}
+  .player-strip{flex-direction:column;align-items:flex-start}
+  .capture-strip{width:100%}
+  .guide-panel{right:10px;left:10px;width:auto;bottom:10px}
+}
