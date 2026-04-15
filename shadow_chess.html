@@ -44,23 +44,9 @@
               <button class="btn btn-ghost" id="join-room-btn"></button>
             </div>
           </div>
-
-          <div class="feature-grid">
-            <article class="feature-card">
-              <span class="feature-index">01</span>
-              <h2 id="feature-setup-title"></h2>
-              <p id="feature-setup-copy"></p>
-            </article>
-            <article class="feature-card">
-              <span class="feature-index">02</span>
-              <h2 id="feature-shadow-title"></h2>
-              <p id="feature-shadow-copy"></p>
-            </article>
-            <article class="feature-card">
-              <span class="feature-index">03</span>
-              <h2 id="feature-fog-title"></h2>
-              <p id="feature-fog-copy"></p>
-            </article>
+          
+          <div style="margin-top:20px; text-align:center;">
+             <button disabled class="btn btn-secondary" style="width:100%; opacity:0.8; border:2px dashed var(--line); color:var(--muted)">🚀 Online Sıralamalı Maçlar (Çok Yakında!)</button>
           </div>
 
           <p class="menu-status" id="menu-status"></p>
@@ -193,11 +179,6 @@
               <span class="player-dot enemy-dot"></span>
               <h3 id="enemy-name"></h3>
             </div>
-            <div class="history-controls">
-              <button class="btn btn-ghost history-btn" id="hist-prev-btn">&lt;</button>
-              <button class="btn btn-ghost history-btn" id="hist-next-btn">&gt;</button>
-            </div>
-          </div>
             <div class="capture-strip" id="enemy-captured"></div>
           </div>
 
@@ -231,8 +212,13 @@
           </div>
 
           <div class="tab-content">
-            <div class="tab-pane active" id="moves-panel">
-              <div class="move-log" id="move-log"></div>
+            <div class="tab-pane active" id="moves-panel" style="display:flex; flex-direction:column; flex:1;">
+              <div class="move-log" id="move-log" style="flex:1;"></div>
+              
+              <div class="history-controls-bottom" style="display:flex; justify-content:center; gap:10px; margin-top:8px; border-top:1px solid var(--line); padding-top:10px;">
+                <button class="btn btn-secondary history-btn" id="hist-prev-btn" style="flex:1;">&lt; Hamle Geri</button>
+                <button class="btn btn-secondary history-btn" id="hist-next-btn" style="flex:1;">İleri &gt;</button>
+              </div>
             </div>
             <div class="tab-pane" id="chat-panel">
               <div class="chat-messages" id="chat-messages"></div>
@@ -320,24 +306,6 @@
   </div>
 
   <div class="toast" id="toast"></div>
-
-  <!-- Mobile Chat FAB -->
-  <button class="mobile-chat-fab" id="mobile-chat-fab">
-    💬
-    <span class="mobile-chat-badge hidden" id="mobile-chat-badge">1</span>
-  </button>
-
-  <!-- Mobile Chat Overlay -->
-  <div class="mobile-chat-overlay" id="mobile-chat-overlay">
-    <div class="mobile-chat-panel">
-      <button class="mobile-chat-close" id="mobile-chat-close">Kapat ✕</button>
-      <div class="chat-messages" id="mobile-chat-messages" style="flex:1;"></div>
-      <div class="chat-input-row" style="margin-top:10px;">
-        <input id="mobile-chat-input" type="text" placeholder="Mesajınız..." />
-        <button class="btn btn-primary btn-small" id="mobile-chat-send">Gönder</button>
-      </div>
-    </div>
-  </div>
 
   <script src="engine.js"></script>
   <script src="i18n.js"></script>

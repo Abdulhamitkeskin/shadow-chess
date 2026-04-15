@@ -54,31 +54,51 @@ var AudioFX = {
     if(!this.ctx) this.init();
     if(!this.ctx) return;
     if(this.ctx.state === 'suspended') this.ctx.resume();
-    var osc = this.ctx.createOscillator();
-    var gain = this.ctx.createGain();
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
     var now = this.ctx.currentTime;
     
-    if (type === 'move') {
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(150, now);
-      osc.frequency.exponentialRampToValueAtTime(40, now + 0.1);
-      var bq = this.ctx.createBiquadFilter(); bq.type='lowpass'; bq.frequency.value=800;
-      osc.connect(bq); bq.connect(gain);
-      gain.gain.setValueAtTime(1, now);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
-      osc.start(now);
-      osc.stop(now + 0.1);
-    } else if (type === 'capture') {
-      osc.type = 'square';
-      osc.frequency.setValueAtTime(120, now);
-      osc.frequency.exponentialRampToValueAtTime(30, now + 0.15);
-      gain.gain.setValueAtTime(0.8, now);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-      osc.start(now);
-      osc.stop(now + 0.15);
+    // Physical modeling of wood thud
+    var osc = this.ctx.createOscillator();
+    var gain = this.ctx.createGain();
+    var filter = this.ctx.createBiquadFilter();
+    
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(type === 'capture' ? 180 : 150, now);
+    osc.frequency.exponentialRampToValueAtTime(40, now + 0.1);
+    
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(800, now);
+    filter.frequency.exponentialRampToValueAtTime(200, now + 0.1);
+
+    var bufferSize = this.ctx.sampleRate * 0.1;
+    var buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+    var data = buffer.getChannelData(0);
+    for (var i = 0; i < bufferSize; i++) {
+      data[i] = Math.random() * 2 - 1;
     }
+    var noise = this.ctx.createBufferSource();
+    noise.buffer = buffer;
+    var noiseFilter = this.ctx.createBiquadFilter();
+    noiseFilter.type = 'bandpass';
+    noiseFilter.frequency.value = type === 'capture' ? 1500 : 1000;
+    
+    var noiseGain = this.ctx.createGain();
+    noiseGain.gain.setValueAtTime(1, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+
+    osc.connect(filter);
+    filter.connect(gain);
+    noise.connect(noiseFilter);
+    noiseFilter.connect(noiseGain);
+    
+    gain.connect(this.ctx.destination);
+    noiseGain.connect(this.ctx.destination);
+    
+    gain.gain.setValueAtTime(type === 'capture' ? 2.5 : 2, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+    
+    osc.start(now);
+    noise.start(now);
+    osc.stop(now + 0.1);
   }
 };
 
@@ -115,8 +135,7 @@ function cacheDom(){
     'promotion-modal','promotion-title','promotion-text','promotion-opts',
     'toast',
     'settings-open-btn','settings-modal','settings-close-btn','bg-theme-picker',
-    'hist-prev-btn','hist-next-btn','history-warning',
-    'mobile-chat-fab','mobile-chat-badge','mobile-chat-overlay','mobile-chat-close','mobile-chat-messages','mobile-chat-input','mobile-chat-send'
+    'hist-prev-btn','hist-next-btn','history-warning'
   ];
   ids.forEach(function(id){ dom[id] = $(id); });
 }
@@ -403,16 +422,8 @@ function syncOnline(state){
   // sync history
   if(state.history && state.history.length > 0) { App.history = state.history; App.viewIndex = App.history.length - 1; }
   // sync chat
-  if(state.chat && state.chat.length > App.online.chatLen){
     App.online.chatLen = state.chat.length;
     renderChat(state.chat);
-    var unread = state.chat.filter(m=> m.sender!==App.online.color && m.time > (App.lastChatRead||0));
-    var unreadCount = unread.length;
-    var overlay = dom['mobile-chat-overlay'];
-    if (unreadCount > 0 && !(overlay.classList.contains('open')||dom['chat-panel'].classList.contains('active'))) {
-      var badge = dom['mobile-chat-badge'];
-      badge.textContent = unreadCount; badge.classList.remove('hidden');
-    }
   }
   if(state.phase==='playing'){
     var nv = state.game ? state.game.version : -1;
@@ -533,6 +544,12 @@ function updateGameUI(){
   dom['hide-btn'].disabled=!isMyTurn||view.over||!view.hideAvailable.self;
   dom['rematch-btn'].classList.toggle('hidden',!view.over);
   // chat tab visibility (only online)
+  if(App.mode!=='online' && dom['tab-chat-btn'].classList.contains('active')) {
+     dom['tab-chat-btn'].classList.remove('active');
+     dom['tab-moves-btn'].classList.add('active');
+     dom['chat-panel'].classList.remove('active');
+     dom['moves-panel'].classList.add('active');
+  }
   dom['tab-chat-btn'].style.display = App.mode==='online' ? '' : 'none';
   // captured
   renderCaptured(view.capturedBy, color);
@@ -599,16 +616,13 @@ function sendChat(){
 }
 function renderChat(messages){
   var el=dom['chat-messages']; el.innerHTML='';
-  var mobileEl=dom['mobile-chat-messages']; mobileEl.innerHTML='';
   var color=App.online.color;
   (messages||[]).forEach(function(m){
     var d=document.createElement('div'); d.className='chat-msg '+(m.sender===color?'mine':'theirs');
     d.textContent=m.text; 
     el.appendChild(d);
-    mobileEl.appendChild(d.cloneNode(true));
   });
   el.scrollTop=el.scrollHeight;
-  mobileEl.scrollTop=mobileEl.scrollHeight;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -714,34 +728,37 @@ function requestRematch(){
    12.  TUTORIAL (interactive on-board)
    ═══════════════════════════════════════════════════════════════ */
 var TUT_BOARDS = [];
+var TUT_SELECTION = null;
 
 function buildTutBoards(){
   var empty = Engine.emptyBoard();
-  // Step 0: empty board
-  TUT_BOARDS[0]=empty;
-  // Step 1: white pieces arranged
-  TUT_BOARDS[1]=Engine.createDefaultSetup('white');
-  // Step 2: both sides — show white, black hidden
-  var both = Engine.emptyBoard();
-  var ws = Engine.createDefaultSetup('white');
-  var bs = Engine.createDefaultSetup('black');
-  for(var r=0;r<8;r++) for(var c=0;c<8;c++){
-    both[r][c] = ws[r][c] || bs[r][c] || null;
-  }
-  TUT_BOARDS[2] = both;
-  // Step 3: mid-game (move a pawn)
-  var mid = Engine.emptyBoard();
-  for(var r2=0;r2<8;r2++) for(var c2=0;c2<8;c2++) mid[r2][c2]=ws[r2][c2]||bs[r2][c2]||null;
-  mid[6][4]=null; mid[4][4]='P'; // e2->e4
-  mid[1][4]=null; mid[3][4]='P'; // e7->e5
-  TUT_BOARDS[3]=mid;
-  // Step 4: fog pulse (same as step 3, handled visually)
-  TUT_BOARDS[4]=mid;
+  TUT_BOARDS[0] = Engine.createDefaultSetup('white'); // Serbest Dizilim
+  
+  // Step 1: Dinamik Savaş Sisi (Piyon yeme)
+  var p1 = Engine.emptyBoard();
+  p1[6][4] = 'P'; // White pawn
+  p1[4][3] = 'N'; // Black knight
+  p1[4][5] = 'N'; // Black knight
+  TUT_BOARDS[1] = p1;
+
+  // Step 2: Uzun menzilli
+  var p2 = Engine.emptyBoard();
+  p2[7][0] = 'R'; // White Rook
+  p2[3][0] = 'B'; // Black Bishop
+  TUT_BOARDS[2] = p2;
+
+  // Step 3: Sis dalgasi
+  var p3 = Engine.emptyBoard();
+  p3[4][3] = 'P'; 
+  p3[2][3] = 'N'; 
+  TUT_BOARDS[3] = p3;
+
+  TUT_BOARDS[4] = empty; // Bitis
 }
 
 function openTutorial(){
   if(!TUT_BOARDS.length) buildTutBoards();
-  App.tutorial.active=true; App.tutorial.step=0;
+  App.tutorial.active=true; App.tutorial.step=0; TUT_SELECTION=null;
   showScreen('tutorial-screen');
   renderTutStep();
 }
@@ -752,49 +769,81 @@ function renderTutStep(){
   var s=App.tutorial.step;
   if(s>=steps.length) s=steps.length-1;
   var step=steps[s];
-  dom['tut-speech'].textContent=step.text;
+  
+  // Custom message modifier for interaction
+  var txt = step.text;
+  if(s===1) txt += " Şimdi E2'deki Piyonunuza (Tıklayın) ve E3'e sürerek (Yeşil noktaya) düşman atlarını nasıl açığa çıkardığını görün!";
+  if(s===2) txt += " A1'deki Kalenizi A3'e sürerek (3 adım) radarınıza giren Düşman Filini açığa çıkarın!";
+  if(s===3) txt += " Rakibinizin atı görünür durumda... Ancak Sis Dalgası (Fog Pulse) ile kendi taşlarınızı tekrar gizleyebilirsiniz. (Şimdi sadece İleri diyerek simüle edin)";
+  
+  dom['tut-speech'].textContent = txt;
   dom['tut-step-ind'].textContent=(s+1)+' / '+steps.length;
+  
+  // Disable next button on interactive steps (until completed)
+  var disableNext = (s===1 || s===2);
+  dom['tut-next-btn'].style.display = disableNext ? 'none' : '';
   dom['tut-next-btn'].textContent = s>=steps.length-1 ? (App.locale==='tr'?'Bitir':'Finish') : t('tut-next-btn');
-  // Render tutorial board
-  renderTutBoard(s);
+
+  renderTutBoard();
 }
 
-function renderTutBoard(stepIdx){
+function tutMove(from, to) {
+  var b = TUT_BOARDS[App.tutorial.step];
+  b[to[0]][to[1]] = b[from[0]][from[1]];
+  b[from[0]][from[1]] = null;
+  TUT_SELECTION = null;
+  AudioFX.play('move');
+  dom['tut-next-btn'].style.display = '';
+  renderTutBoard();
+}
+
+function renderTutBoard(){
+  var stepIdx = App.tutorial.step;
   var bEl=dom['tutorial-board']; bEl.innerHTML='';
   var boardData=TUT_BOARDS[stepIdx]||Engine.emptyBoard();
-  var fogStep = stepIdx===4; // fog pulse step: hide black pieces
 
   for(var dr=0;dr<8;dr++) for(var dc=0;dc<8;dc++){
     var row=dr, col=dc;
     var sq=document.createElement('button'); sq.className='square '+sqColor(row,col);
     var type=boardData[row][col];
+    var isBlack = (stepIdx===0) ? row<=1 : (type && ((stepIdx===1 && row<=4) || (stepIdx===2 && row<=4) || (stepIdx===3 && row<=3))); 
+    
+    // logic for interactive targets
+    var isTarget = false;
+    if(TUT_SELECTION && TUT_SELECTION[0]===6 && TUT_SELECTION[1]===4 && stepIdx===1 && row===5 && col===4) isTarget=true;
+    if(TUT_SELECTION && TUT_SELECTION[0]===7 && TUT_SELECTION[1]===0 && stepIdx===2 && row===5 && col===0) isTarget=true;
+    
+    if(TUT_SELECTION && TUT_SELECTION[0]===row && TUT_SELECTION[1]===col) sq.classList.add('selected');
+    if(isTarget) sq.classList.add('move-target');
+
     if(type){
-      var isBlack = row<=1; // rows 0,1 are black home area
       var sp=document.createElement('span');
-      if(stepIdx>=2 && isBlack && type!=='K'){
-        // Show hidden (mystery) pieces for opponent
-        if(fogStep || stepIdx===2){
-          sp.className='piece mystery'; sp.textContent='?';
-        } else {
-          // Step 3: show some revealed (moved pieces visible)
-          if(row===3 && col===4){
-            sp.className='piece black'; sp.textContent=SYMBOLS.black.P;
-          } else {
-            sp.className='piece mystery'; sp.textContent='?';
-          }
-        }
+      // If black piece and not revealed
+      var isRevealed = false;
+      if (stepIdx===1 && boardData[5][4]) isRevealed = true; // revealed after pawn reaches 5,4
+      if (stepIdx===2 && boardData[5][0]) isRevealed = true; // revealed after rook reaches 5,0
+      if (stepIdx===3) isRevealed = true; // Step 3 starts revealed
+
+      if(isBlack && !isRevealed){
+        sp.className='piece mystery'; sp.textContent='?';
       } else {
         var pColor = isBlack ? 'black' : 'white';
         sp.className='piece '+pColor; sp.textContent=SYMBOLS[pColor][type];
       }
       sq.appendChild(sp);
     }
-    // Highlight moved pieces in step 3
-    if(stepIdx===3){
-      if((row===4&&col===4)||(row===3&&col===4)) sq.classList.add('last-to');
-    }
+    
     if(dc===0){ var cr=document.createElement('span'); cr.className='coord coord-rank'; cr.textContent=8-row; sq.appendChild(cr); }
     if(dr===7){ var cf=document.createElement('span'); cf.className='coord coord-file'; cf.textContent=FILES[col]; sq.appendChild(cf); }
+    
+    (function(r,c, isT){
+      sq.addEventListener('click', function(){
+         if(stepIdx===1 && r===6 && c===4) { TUT_SELECTION=[r,c]; renderTutBoard(); }
+         if(stepIdx===2 && r===7 && c===0) { TUT_SELECTION=[r,c]; renderTutBoard(); }
+         if(isT && TUT_SELECTION) { tutMove(TUT_SELECTION, [r,c]); }
+      });
+    })(row, col, isTarget);
+
     bEl.appendChild(sq);
   }
 }
@@ -802,7 +851,7 @@ function renderTutBoard(stepIdx){
 function nextTut(){
   var steps=td('tutorialSteps');
   if(App.tutorial.step>=steps.length-1){ closeTut(); return; }
-  App.tutorial.step++; renderTutStep();
+  App.tutorial.step++; TUT_SELECTION=null; renderTutStep();
 }
 function closeTut(){
   App.tutorial.active=false;
