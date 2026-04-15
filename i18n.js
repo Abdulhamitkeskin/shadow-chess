@@ -132,11 +132,11 @@
       readyWaiting: 'Hazirsin \u2014 rakip bekleniyor\u2026',
       pieceNames: { K:'Kral', Q:'Vezir', R:'Kale', B:'Fil', N:'At', P:'Piyon' },
       tutorialSteps: [
-        { title:'Shadow Chess Nedir?', text:'Shadow Chess, klasik satrancin gizemli versiyonudur. Rakibinin taslarini goremezsin \u2014 ta ki onlar hamle yapana kadar.' },
-        { title:'Serbest Dizilim', text:'Oyuna baslamadan once 16 tasini kendi ilk iki sirina istedigin gibi yerlestirirsin. Stratejik dusun!' },
-        { title:'Gizli Taslar', text:'Taslarin, hamle yapana kadar rakibe gorunmez. Kral istisna \u2014 o her zaman gorunur.' },
-        { title:'Sis Dalgasi', text:'Mac boyunca BIR KEZ kullanabilirsin. Tum aciga cikmis taslarin tekrar gizlenir. Dogru zamani bekle!' },
-        { title:'Hazirsin!', text:'Artik kurallari biliyorsun. Geri don ve bir oyun baslat!' },
+        { title:'Serbest Dizilim (Free Setup)', text:'Gölge Satrancına hoş geldin! Başlamadan önce: Kendi ilk iki sırana taşları tamamen serbestçe dizebilirsin. Kaleyi ortaya, şahı köşeye koy!' },
+        { title:'Dinamik Savaş Sisi', text:'Oyun başladığında rakibinin taşları karanlıktadır. Ancak bir piyonunun çarpraz yeme menziline veya Atının zıplama noktasına bir düşman düşerse, sınırsız süre görünür hale gelir.' },
+        { title:'Uzun Menzilli Görüş', text:'Vezir, Kale ve Fil gibi uzun menzilli birimlerin görüş mesafesi sadece 3 adımla sınırlıdır. Bir düşman bu 3 adımlık alana girerse kimliği ortaya çıkar.' },
+        { title:'Sis Dalgası (Fog Pulse)', text:'Zaman zaman "Sis Dalgası" yeteneğini kullanarak açık taşlarını anlık olarak rakipten saklayabilir, ona uyanık bir tuzak kurabilirsin. Biten bir gizlilik tekrar canlanır.' },
+        { title:'Hazırsın!', text:'Artık yeni Savaş Sisini biliyorsun. Oynamak için Ana Menüye dön, Ayarlardan dilediğin temayı seç ve savaşa başla!' },
       ],
       guideSteps: [
         { title:'Hos Geldin!', text:'Ben Wraith, Shadow Chess rehberinim. Sana oyunu adim adim anlatacagim.' },

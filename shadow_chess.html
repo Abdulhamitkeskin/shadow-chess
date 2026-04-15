@@ -18,9 +18,8 @@
       <span class="brand-mark">SC</span>
       <span class="brand-name">Shadow Chess</span>
     </div>
-    <div class="lang-switch">
-      <button class="lang-btn" id="lang-tr-btn">TR</button>
-      <button class="lang-btn" id="lang-en-btn">EN</button>
+    <div class="settings-toggle">
+      <button class="settings-toggle-btn" id="settings-open-btn">⚙</button>
     </div>
   </div>
 
@@ -29,7 +28,6 @@
     <section class="screen active" id="menu-screen">
       <div class="menu-layout">
         <article class="hero-card">
-          <p class="section-kicker" id="menu-kicker"></p>
           <h1 id="menu-title"></h1>
           <p class="hero-copy" id="menu-copy"></p>
 
@@ -109,13 +107,6 @@
             </div>
           </div>
 
-          <div class="wraith-card compact">
-            <div class="wraith-portrait"><div class="wraith-face"></div></div>
-            <div>
-              <p class="wraith-name">Wraith</p>
-              <p class="wraith-copy" id="menu-wraith-copy"></p>
-            </div>
-          </div>
         </aside>
       </div>
     </section>
@@ -202,10 +193,16 @@
               <span class="player-dot enemy-dot"></span>
               <h3 id="enemy-name"></h3>
             </div>
+            <div class="history-controls">
+              <button class="btn btn-ghost history-btn" id="hist-prev-btn">&lt;</button>
+              <button class="btn btn-ghost history-btn" id="hist-next-btn">&gt;</button>
+            </div>
+          </div>
             <div class="capture-strip" id="enemy-captured"></div>
           </div>
 
-          <div class="board-frame game-frame">
+          <div class="board-frame game-frame" style="position:relative;">
+            <div class="history-warning hidden" id="history-warning">Güncele Dön</div>
             <div class="board board-game" id="game-board"></div>
           </div>
 
@@ -246,13 +243,6 @@
             </div>
           </div>
 
-          <div class="wraith-card compact sidebar-wraith">
-            <div class="wraith-portrait"><div class="wraith-face"></div></div>
-            <div>
-              <p class="wraith-name">Wraith</p>
-              <p class="wraith-copy" id="game-wraith-copy"></p>
-            </div>
-          </div>
         </aside>
       </div>
     </section>
@@ -300,7 +290,54 @@
     </div>
   </div>
 
+  <!-- Settings Modal -->
+  <div class="modal" id="settings-modal">
+    <div class="modal-card panel-surface">
+      <h2>Ayarlar</h2>
+      
+      <div style="margin-top:20px; text-align:left;">
+        <label style="font-weight:bold; display:block; margin-bottom:8px;">Dil (Language)</label>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-ghost" id="lang-tr-btn" style="flex:1;">Türkçe</button>
+          <button class="btn btn-ghost" id="lang-en-btn" style="flex:1;">English</button>
+        </div>
+      </div>
+      
+      <div style="margin-top:20px; text-align:left;">
+        <label style="font-weight:bold; display:block; margin-bottom:8px;">Arka Plan Teması</label>
+        <div class="bg-theme-picker" id="bg-theme-picker">
+          <button class="bg-opt active" data-bg="classic">Klasik</button>
+          <button class="bg-opt" data-bg="white">Açık/Beyaz</button>
+          <button class="bg-opt" data-bg="dark">Gece/Koyu</button>
+          <button class="bg-opt" data-bg="pink">Pembe/Sıcak</button>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="settings-close-btn" style="width:100%;">Geri Dön (Kapat)</button>
+      </div>
+    </div>
+  </div>
+
   <div class="toast" id="toast"></div>
+
+  <!-- Mobile Chat FAB -->
+  <button class="mobile-chat-fab" id="mobile-chat-fab">
+    💬
+    <span class="mobile-chat-badge hidden" id="mobile-chat-badge">1</span>
+  </button>
+
+  <!-- Mobile Chat Overlay -->
+  <div class="mobile-chat-overlay" id="mobile-chat-overlay">
+    <div class="mobile-chat-panel">
+      <button class="mobile-chat-close" id="mobile-chat-close">Kapat ✕</button>
+      <div class="chat-messages" id="mobile-chat-messages" style="flex:1;"></div>
+      <div class="chat-input-row" style="margin-top:10px;">
+        <input id="mobile-chat-input" type="text" placeholder="Mesajınız..." />
+        <button class="btn btn-primary btn-small" id="mobile-chat-send">Gönder</button>
+      </div>
+    </div>
+  </div>
 
   <script src="engine.js"></script>
   <script src="i18n.js"></script>

@@ -29,17 +29,47 @@ body[data-theme="ocean"]  { --sq-light:#dee3e6; --sq-dark:#5e8ca8; }
 body[data-theme="royal"]  { --sq-light:#e8daf0; --sq-dark:#7b61a0; }
 body[data-theme="walnut"] { --sq-light:#f0d9b5; --sq-dark:#b58863; }
 
+/* ── Background Themes ──────────────────── */
+body[data-bg-theme="classic"] {
+  --page-bg: linear-gradient(180deg,#fbf7ef 0%,#f3ecdd 50%,#ede2cf 100%);
+  --aura-left: rgba(201,144,58,.26);
+  --aura-right: rgba(42,111,151,.18);
+  --ink: #26211d;
+  --panel: rgba(255,252,245,.92);
+}
+body[data-bg-theme="dark"] {
+  --page-bg: #1e1e1e;
+  --aura-left: rgba(201,144,58,.1);
+  --aura-right: rgba(42,111,151,.1);
+  --ink: #f0f0f0;
+  --panel: rgba(40,40,40,.92);
+  --panel-strong: rgba(50,50,50,.98);
+  color: var(--ink);
+}
+body[data-bg-theme="pink"] {
+  --page-bg: linear-gradient(180deg,#fff0f5 0%,#ffe4e1 100%);
+  --aura-left: rgba(255,105,180,.2);
+  --aura-right: rgba(219,112,147,.2);
+  --ink: #4a2c3a;
+  --panel: rgba(255,248,251,.92);
+}
+body[data-bg-theme="white"] {
+  --page-bg: #ffffff;
+  --aura-left: rgba(200,200,200,.15);
+  --aura-right: rgba(180,180,180,.15);
+  --ink: #111111;
+  --panel: rgba(250,250,250,.95);
+}
+
 /* ── Reset ──────────────────────────────── */
 *{box-sizing:border-box}
 html,body{margin:0;height:100%}
 body{
   color:var(--ink);
   font-family:"Manrope",sans-serif;
-  background:
-    radial-gradient(circle at top left,rgba(201,144,58,.18),transparent 26%),
-    radial-gradient(circle at top right,rgba(42,111,151,.12),transparent 24%),
-    linear-gradient(180deg,#fbf7ef 0%,#f3ecdd 50%,#ede2cf 100%);
+  background: var(--page-bg, linear-gradient(180deg,#fbf7ef 0%,#f3ecdd 50%,#ede2cf 100%));
   overflow-x:hidden;
+  transition: background 0.3s, color 0.3s;
 }
 button,input{font:inherit}
 button{cursor:pointer}
@@ -54,9 +84,12 @@ button{cursor:pointer}
 .brand-mini{display:inline-flex;align-items:center;gap:10px}
 .brand-mark{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--gold),var(--gold-deep));color:#fff7ea;font-weight:800;font-size:.85rem}
 .brand-name{font-family:"Fraunces",serif;font-size:1rem}
-.lang-switch{display:inline-flex;gap:6px;padding:4px;border-radius:999px;background:rgba(255,250,241,.75);border:1px solid var(--line);box-shadow:0 6px 16px rgba(68,52,33,.06)}
-.lang-btn{min-width:46px;border:none;border-radius:999px;padding:7px 10px;background:transparent;color:var(--muted);font-weight:700;font-size:.82rem}
-.lang-btn.active{background:var(--ink);color:#fffdf7}
+.lang-switch{display:none} /* Removed TR/EN from here */
+.settings-toggle-btn{background:rgba(255,250,241,.75);border:1px solid var(--line);box-shadow:0 6px 16px rgba(68,52,33,.06);border-radius:50%;width:42px;height:42px;display:inline-flex;align-items:center;justify-content:center;font-size:1.2rem;color:var(--ink);transition:all .2s;}
+.settings-toggle-btn:hover{transform:rotate(45deg); background:var(--panel-strong);}
+.bg-theme-picker{display:flex;gap:8px;margin-top:10px}
+.bg-opt{flex:1;padding:8px;border-radius:10px;border:2px solid var(--line);background:rgba(255,255,255,.5);font-size:.8rem;font-weight:700;color:var(--muted);transition:all .2s;}
+.bg-opt.active{border-color:var(--gold);background:rgba(201,144,58,.08);color:var(--ink);}
 
 /* ── App shell ──────────────────────────── */
 .app-shell{position:relative;z-index:1;padding:10px 24px 18px}
@@ -88,7 +121,7 @@ button{cursor:pointer}
 
 .section-kicker{margin:0 0 8px;font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold-deep);font-weight:800}
 h1,h2,h3,.wraith-name{margin:0;font-family:"Fraunces",serif}
-h1{max-width:520px;font-size:clamp(2.6rem,7vw,4.4rem);line-height:.92}
+h1{max-width:520px;font-size:clamp(2.4rem,6vw,3.8rem);line-height:.95}
 h2{font-size:clamp(1.6rem,4vw,2.4rem)}
 h3{font-size:1.15rem}
 .hero-copy,.panel-copy,.menu-status,.feature-card p,.wraith-copy,.palette-copy,.held-piece,.game-message,.guide-text,.tut-speech,#result-text,.info-card{color:var(--muted);line-height:1.65}
@@ -234,6 +267,15 @@ h3{font-size:1.15rem}
 .game-actions{gap:6px}
 .game-actions .btn{font-size:.82rem}
 
+/* ── History Controls ─────────────────────── */
+.history-controls { display:flex; gap:6px; margin-left:auto; }
+.history-btn { font-weight:bold; font-size:1rem; padding:4px 12px; }
+.history-warning {
+  position:absolute; top:8px; right:8px; padding:6px 12px; border-radius:12px;
+  background:rgba(201,144,58,.9); color:#fff; font-weight:800; font-size:.8rem; z-index:5;
+  box-shadow:0 4px 12px rgba(201,144,58,.4); cursor:pointer;
+}
+
 /* ── Tabs ───────────────────────────────── */
 .sidebar-tabs{display:flex;border-bottom:2px solid var(--line);margin:4px 0 0}
 .tab-btn{flex:1;padding:8px 6px;background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-2px;font-weight:700;font-size:.84rem;color:var(--muted);transition:.18s}
@@ -257,6 +299,28 @@ h3{font-size:1.15rem}
 .chat-msg.theirs{align-self:flex-start;background:rgba(0,0,0,.05);color:var(--ink)}
 .chat-input-row{display:flex;gap:6px;padding:6px 0 0;border-top:1px solid var(--line);margin-top:auto}
 .chat-input-row input{flex:1;min-width:0;border:1px solid var(--line);border-radius:12px;padding:7px 10px;background:rgba(255,255,255,.74);color:var(--ink);font-size:.84rem}
+
+/* ── Mobile Chat FAB ────────────────────── */
+.mobile-chat-fab {
+  display:none; position:fixed; right:16px; bottom:16px; z-index:20;
+  width:56px; height:56px; border-radius:50%; background:var(--ink); color:#fff;
+  border:none; box-shadow:0 8px 24px rgba(0,0,0,.25); font-size:1.5rem;
+  align-items:center; justify-content:center;
+}
+.mobile-chat-badge {
+  position:absolute; top:-4px; right:-4px; background:var(--danger); color:#fff;
+  font-size:.7rem; font-weight:800; padding:2px 6px; border-radius:10px; border:2px solid #fff;
+}
+.mobile-chat-overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:25; display:none;
+}
+.mobile-chat-overlay.open { display:block; }
+.mobile-chat-panel {
+  position:absolute; bottom:0; left:0; right:0; height:75vh;
+  background:var(--panel); border-radius:24px 24px 0 0; display:flex; flex-direction:column;
+  padding:16px; box-shadow:0 -10px 40px rgba(0,0,0,.2);
+}
+.mobile-chat-close { align-self:flex-end; font-weight:800; background:none; border:none; font-size:1.2rem; cursor:pointer; color:var(--muted); margin-bottom:8px; }
 
 /* ═══════════════════════════════════════════
    GUIDE PANEL (floating Wraith)
@@ -297,4 +361,7 @@ h3{font-size:1.15rem}
   .player-strip{flex-direction:column;align-items:flex-start}
   .capture-strip{width:100%}
   .guide-panel{right:10px;left:10px;width:auto;bottom:10px}
+  .sidebar-tabs .tab-btn[id="tab-chat-btn"] { display:none !important; }
+  .tab-pane[id="chat-panel"] { display:none !important; }
+  .mobile-chat-fab { display:flex; }
 }

@@ -17,7 +17,7 @@ var PIECE_VAL   = { P:1, N:3, B:3, R:5, Q:9, K:0 };
 var App = {
   locale: localStorage.getItem('shadow-lang') || 'tr',
   activeScreen: 'menu-screen',
-  mode: null,            // 'cpu' | 'online'
+  mode: null,
   busy: false,
   selected: null,
   legalMoves: [],
@@ -25,9 +25,12 @@ var App = {
   cpuTimer: null,
   localGame: null,
   localPlayerColor: 'white',
-  moveLog: [],           // [{piece,from,to,captured,color}, ...]
+  moveLog: [],
+  history: [],
+  viewIndex: -1,
   chosenColor: localStorage.getItem('shadow-color') || 'white',
   theme: localStorage.getItem('shadow-theme') || 'classic',
+  bgTheme: localStorage.getItem('shadow-bg') || 'classic',
   tutorial: { active:false, step:0 },
   guide: {
     enabled: localStorage.getItem('shadow-guide-off') !== '1',
@@ -35,7 +38,7 @@ var App = {
   },
   cpu: { enemySetup:null },
   online: { roomId:null, token:null, color:null, state:null, chatLen:0 },
-  setup: { draft:null, ready:false, playerColor:'white', roomUrl:'', heldPiece:null },
+  setup: { draft:null, ready:false, playerColor:'white', heldPiece:null, selectedSq:null, lastClick:0 },
 };
 
 var dom = {};
@@ -58,21 +61,23 @@ var AudioFX = {
     var now = this.ctx.currentTime;
     
     if (type === 'move') {
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(450, now);
-      osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
-      gain.gain.setValueAtTime(0.5, now);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(150, now);
+      osc.frequency.exponentialRampToValueAtTime(40, now + 0.1);
+      var bq = this.ctx.createBiquadFilter(); bq.type='lowpass'; bq.frequency.value=800;
+      osc.connect(bq); bq.connect(gain);
+      gain.gain.setValueAtTime(1, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
       osc.start(now);
       osc.stop(now + 0.1);
     } else if (type === 'capture') {
       osc.type = 'square';
-      osc.frequency.setValueAtTime(150, now);
-      osc.frequency.exponentialRampToValueAtTime(40, now + 0.2);
-      gain.gain.setValueAtTime(0.4, now);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+      osc.frequency.setValueAtTime(120, now);
+      osc.frequency.exponentialRampToValueAtTime(30, now + 0.15);
+      gain.gain.setValueAtTime(0.8, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
       osc.start(now);
-      osc.stop(now + 0.2);
+      osc.stop(now + 0.15);
     }
   }
 };
@@ -86,10 +91,10 @@ function cacheDom(){
   var ids = [
     'menu-screen','setup-screen','tutorial-screen','game-screen',
     'lang-tr-btn','lang-en-btn',
-    'menu-kicker','menu-title','menu-copy','create-room-btn','cpu-mode-btn','open-tutorial-btn',
+    'menu-title','menu-copy','create-room-btn','cpu-mode-btn','open-tutorial-btn',
     'room-code-input','join-room-btn','join-label',
     'feature-setup-title','feature-setup-copy','feature-shadow-title','feature-shadow-copy',
-    'feature-fog-title','feature-fog-copy','menu-wraith-copy','menu-status',
+    'feature-fog-title','feature-fog-copy','menu-status',
     'color-label','pick-white','pick-random','pick-black',
     'pick-white-label','pick-random-label','pick-black-label',
     'theme-label','theme-picker',
@@ -103,13 +108,15 @@ function cacheDom(){
     'self-name','self-captured',
     'turn-badge','game-message',
     'hide-btn','extra-action-btn','rematch-btn',
-    'game-wraith-copy',
     'tab-moves-btn','tab-chat-btn','moves-panel','chat-panel',
     'move-log','chat-messages','chat-input','chat-send-btn',
     'guide-panel','guide-title','guide-text','guide-skip-btn','guide-next-btn',
     'result-modal','result-kicker','result-title','result-text','result-primary','result-secondary',
     'promotion-modal','promotion-title','promotion-text','promotion-opts',
     'toast',
+    'settings-open-btn','settings-modal','settings-close-btn','bg-theme-picker',
+    'hist-prev-btn','hist-next-btn','history-warning',
+    'mobile-chat-fab','mobile-chat-badge','mobile-chat-overlay','mobile-chat-close','mobile-chat-messages','mobile-chat-input','mobile-chat-send'
   ];
   ids.forEach(function(id){ dom[id] = $(id); });
 }
@@ -182,6 +189,15 @@ function resolveColor(){
   return App.chosenColor;
 }
 
+function applyBgTheme(name){
+  App.bgTheme = name;
+  localStorage.setItem('shadow-bg', name);
+  document.body.setAttribute('data-bg-theme', name);
+  document.querySelectorAll('.bg-opt').forEach(function(b){
+    b.classList.toggle('active', b.getAttribute('data-bg')===name);
+  });
+}
+
 /* ═══════════════════════════════════════════════════════════════
    4.  BOARD HELPERS
    ═══════════════════════════════════════════════════════════════ */
@@ -232,6 +248,7 @@ function renderSetupBoard(){
     var sq=document.createElement('button');
     sq.className='square '+sqColor(row,col);
     if(homeRows.indexOf(row)!==-1) sq.classList.add('setup-own');
+    if(App.setup.selectedSq && App.setup.selectedSq[0]===row && App.setup.selectedSq[1]===col) sq.classList.add('selected');
     var type=App.setup.draft[row][col];
     if(type){ var sp=document.createElement('span'); sp.className='piece '+color; sp.textContent=SYMBOLS[color][type]; sq.appendChild(sp); }
     if(dc===0){ var cr=document.createElement('span'); cr.className='coord coord-rank'; cr.textContent=8-row; sq.appendChild(cr); }
@@ -267,15 +284,47 @@ function updateSetupHeld(){
 }
 
 function onSetupClick(row,col){
+  if(AudioFX.ctx===null) AudioFX.init();
   var color=App.setup.playerColor;
   if(App.setup.ready) return;
   if(Engine.HOME_ROWS[color].indexOf(row)===-1) return;
-  if(App.setup.heldPiece===EMPTY_TOOL){ App.setup.draft[row][col]=null; refreshSetup(); return; }
-  if(!App.setup.heldPiece){ var ex=App.setup.draft[row][col]; if(ex){ App.setup.draft[row][col]=null; App.setup.heldPiece=ex; refreshSetup(); } return; }
+  
+  var now = Date.now();
+  var isDouble = (App.setup.selectedSq && App.setup.selectedSq[0]===row && App.setup.selectedSq[1]===col && (now - App.setup.lastClick < 300));
+  App.setup.lastClick = now;
+
+  if (isDouble && App.setup.draft[row][col]) {
+     App.setup.draft[row][col] = null;
+     App.setup.selectedSq = null;
+     AudioFX.play('move');
+     refreshSetup(); return;
+  }
+
+  // Swap / Move from existing selected square
+  if (App.setup.selectedSq && (App.setup.selectedSq[0]!==row || App.setup.selectedSq[1]!==col)) {
+     var sr=App.setup.selectedSq[0], sc=App.setup.selectedSq[1];
+     var p1 = App.setup.draft[sr][sc];
+     var p2 = App.setup.draft[row][col];
+     App.setup.draft[row][col] = p1;
+     App.setup.draft[sr][sc] = p2;
+     App.setup.selectedSq = null;
+     AudioFX.play('move');
+     refreshSetup(); return;
+  }
+
+  if(!App.setup.heldPiece || App.setup.heldPiece === EMPTY_TOOL){ 
+     var ex=App.setup.draft[row][col]; 
+     if(ex && App.setup.heldPiece === EMPTY_TOOL){ App.setup.draft[row][col]=null; App.setup.selectedSq=null; AudioFX.play('move'); refreshSetup(); return; }
+     if(ex) { App.setup.selectedSq = [row,col]; refreshSetup(); } else App.setup.selectedSq = null;
+     return; 
+  }
+  
   var type=App.setup.heldPiece, rem=getRemainingCount(type);
   if(rem<=0){ var pr=App.setup.draft[row][col]; if(pr){ App.setup.draft[row][col]=null; rem=getRemainingCount(type); } if(rem<=0) return; }
   App.setup.draft[row][col]=type;
   if(getRemainingCount(type)<=0) App.setup.heldPiece=null;
+  App.setup.selectedSq = null;
+  AudioFX.play('move');
   refreshSetup();
 }
 function refreshSetup(){ renderSetupBoard(); renderPalette(); updateSetupHeld(); updateSetupStatus(); }
@@ -351,16 +400,26 @@ function syncOnline(state){
   App.online.state = state;
   // sync move log
   if(state.moveLog) App.moveLog = state.moveLog;
+  // sync history
+  if(state.history && state.history.length > 0) { App.history = state.history; App.viewIndex = App.history.length - 1; }
   // sync chat
   if(state.chat && state.chat.length > App.online.chatLen){
     App.online.chatLen = state.chat.length;
     renderChat(state.chat);
+    var unread = state.chat.filter(m=> m.sender!==App.online.color && m.time > (App.lastChatRead||0));
+    var unreadCount = unread.length;
+    var overlay = dom['mobile-chat-overlay'];
+    if (unreadCount > 0 && !(overlay.classList.contains('open')||dom['chat-panel'].classList.contains('active'))) {
+      var badge = dom['mobile-chat-badge'];
+      badge.textContent = unreadCount; badge.classList.remove('hidden');
+    }
   }
   if(state.phase==='playing'){
     var nv = state.game ? state.game.version : -1;
     if(App.activeScreen!=='game-screen'){ showScreen('game-screen'); updateGuide(); }
     if(nv!==prev){ 
       if (state.game && state.game.lastMove) AudioFX.play(state.game.lastMove.captured ? 'capture' : 'move');
+      if (!state.history) { App.history.push(state.game); App.viewIndex = App.history.length - 1; }
       clearSel(); renderGameBoard(); updateGameUI(); renderMoveLog(); if(state.game.over) setTimeout(showResult,500); 
     }
     return;
@@ -381,10 +440,13 @@ function startCpuGame(){
   var color=App.localPlayerColor, cpuColor=Engine.opposite(color);
   App.cpu.enemySetup = Engine.createRandomSetup(cpuColor);
   App.moveLog = [];
+  App.history = [];
   try {
     App.localGame = color==='white'
       ? Engine.createGame(App.setup.draft, App.cpu.enemySetup)
       : Engine.createGame(App.cpu.enemySetup, App.setup.draft);
+    var firstState = Engine.serializeGameForPlayer(App.localGame, App.localPlayerColor);
+    App.history.push(firstState); App.viewIndex = 0;
   } catch(e){ showToast(e.message,true); return; }
   showScreen('game-screen'); renderGameBoard(); updateGameUI(); renderMoveLog(); updateGuide();
   if(App.localGame.turn!==color) scheduleCpu();
@@ -403,6 +465,8 @@ function scheduleCpu(){
         App.localGame=r.game;
         App.moveLog.push({ piece:act.move.piece||'?', from:act.move.from, to:act.move.to, captured:r.game.lastMove?r.game.lastMove.captured:null, color:cpuC });
         AudioFX.play(r.game.lastMove&&r.game.lastMove.captured ? 'capture' : 'move');
+        var state = Engine.serializeGameForPlayer(App.localGame, App.localPlayerColor);
+        App.history.push(state); App.viewIndex = App.history.length - 1;
       }
     }
     renderGameBoard(); updateGameUI(); renderMoveLog();
@@ -414,15 +478,18 @@ function scheduleCpu(){
    8.  GAME RENDERING
    ═══════════════════════════════════════════════════════════════ */
 function getView(){
+  if(App.history.length > 0 && App.viewIndex >= 0 && App.viewIndex < App.history.length) return App.history[App.viewIndex];
   if(App.mode==='cpu'&&App.localGame) return Engine.serializeGameForPlayer(App.localGame,App.localPlayerColor);
   if(App.mode==='online'&&App.online.state&&App.online.state.game) return App.online.state.game;
   return null;
 }
+function isViewingPast(){ return App.history.length > 0 && App.viewIndex < App.history.length - 1; }
 function myColor(){ return App.mode==='online' ? App.online.color : App.localPlayerColor; }
 
 function renderGameBoard(){
   var bEl=dom['game-board']; bEl.innerHTML='';
   var view=getView(); if(!view) return;
+  dom['history-warning'].classList.toggle('hidden', !isViewingPast());
   var color=myColor();
   for(var dr=0;dr<8;dr++) for(var dc=0;dc<8;dc++){
     var row=flipRow(dr,color), col=flipCol(dc,color);
@@ -469,9 +536,10 @@ function updateGameUI(){
   dom['tab-chat-btn'].style.display = App.mode==='online' ? '' : 'none';
   // captured
   renderCaptured(view.capturedBy, color);
-  // wraith
-  if(view.over) dom['game-wraith-copy'].textContent=view.winner===color?td('youWin'):(view.winner?td('youLose'):td('draw'));
-  else dom['game-wraith-copy'].textContent=t('game-wraith-copy');
+  
+  // Hist
+  dom['hist-prev-btn'].disabled = App.history.length <= 1 || App.viewIndex <= 0;
+  dom['hist-next-btn'].disabled = App.history.length <= 1 || App.viewIndex >= App.history.length - 1;
 }
 
 function renderCaptured(capturedBy, playerColor){
@@ -531,12 +599,16 @@ function sendChat(){
 }
 function renderChat(messages){
   var el=dom['chat-messages']; el.innerHTML='';
+  var mobileEl=dom['mobile-chat-messages']; mobileEl.innerHTML='';
   var color=App.online.color;
   (messages||[]).forEach(function(m){
     var d=document.createElement('div'); d.className='chat-msg '+(m.sender===color?'mine':'theirs');
-    d.textContent=m.text; el.appendChild(d);
+    d.textContent=m.text; 
+    el.appendChild(d);
+    mobileEl.appendChild(d.cloneNode(true));
   });
   el.scrollTop=el.scrollHeight;
+  mobileEl.scrollTop=mobileEl.scrollHeight;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -544,6 +616,7 @@ function renderChat(messages){
    ═══════════════════════════════════════════════════════════════ */
 function onGameClick(row,col){
   if(AudioFX.ctx===null) AudioFX.init();
+  if(isViewingPast()) { showToast("Sadece geçmişi izliyorsunuz. Oynamak için güncele dönün.", true); return; }
   var view=getView(); if(!view||view.over||App.busy) return;
   var color=myColor(); if(view.turn!==color) return;
   if(App.selected && App.legalMoves.some(function(m){ return m[0]===row&&m[1]===col; })){
@@ -576,6 +649,8 @@ function attemptMove(from,to,promotionChoice){
       App.localGame=r.game;
       var lm=r.game.lastMove||{};
       App.moveLog.push({ piece:lm.piece||'?', from:from, to:to, captured:lm.captured, color:App.localPlayerColor });
+      var state = Engine.serializeGameForPlayer(App.localGame, App.localPlayerColor);
+      App.history.push(state); App.viewIndex = App.history.length - 1;
       AudioFX.play(lm.captured ? 'capture' : 'move');
       renderGameBoard(); updateGameUI(); renderMoveLog();
       if(App.localGame.over) setTimeout(showResult,500);
@@ -626,10 +701,10 @@ function activateFog(){
 
 function requestRematch(){
   closeResult();
-  if(App.mode==='cpu'){ App.localGame=null; clearSel(); App.moveLog=[]; initSetup(resolveColor(),'cpu'); return; }
+  if(App.mode==='cpu'){ App.localGame=null; clearSel(); App.moveLog=[]; App.history=[]; App.viewIndex=-1; initSetup(resolveColor(),'cpu'); return; }
   api('POST','/api/rooms/'+App.online.roomId+'/rematch',{ token:App.online.token }).then(function(d){
     if(d.error){ showToast(d.error,true); return; }
-    App.setup.ready=false; clearSel(); App.moveLog=[];
+    App.setup.ready=false; clearSel(); App.moveLog=[]; App.history=[]; App.viewIndex=-1;
     syncOnline(d);
     if(d.phase==='setup') initSetup(App.online.color,'online',d.mySetup);
   }).catch(function(){ showToast('Error',true); });
@@ -786,6 +861,7 @@ function goToMenu(){
   stopPolling(); clearTimeout(App.cpuTimer); closeResult(); clearSel();
   App.mode=null; App.localGame=null; App.setup.ready=false; App.moveLog=[];
   App.online={ roomId:null, token:null, color:null, state:null, chatLen:0 };
+  App.history=[]; App.viewIndex=-1;
   showScreen('menu-screen'); dom['menu-status'].textContent=''; updateGuide();
 }
 
@@ -795,9 +871,14 @@ function goToMenu(){
 function init(){
   cacheDom();
   applyTheme(App.theme);
+  applyBgTheme(App.bgTheme);
   applyColorChoice(App.chosenColor);
   applyTexts();
   updateGuide();
+
+  // Settings
+  dom['settings-open-btn'].addEventListener('click',function(){ dom['settings-modal'].classList.add('open'); });
+  dom['settings-close-btn'].addEventListener('click',function(){ dom['settings-modal'].classList.remove('open'); });
 
   // Lang
   dom['lang-tr-btn'].addEventListener('click',function(){ setLang('tr'); });
@@ -807,6 +888,12 @@ function init(){
   dom['pick-white'].addEventListener('click',function(){ applyColorChoice('white'); });
   dom['pick-random'].addEventListener('click',function(){ applyColorChoice('random'); });
   dom['pick-black'].addEventListener('click',function(){ applyColorChoice('black'); });
+
+  // BG picker
+  dom['bg-theme-picker'].addEventListener('click',function(e){
+    var btn=e.target.closest('.bg-opt'); if(!btn) return;
+    applyBgTheme(btn.getAttribute('data-bg'));
+  });
 
   // Theme picker
   dom['theme-picker'].addEventListener('click',function(e){
@@ -853,6 +940,39 @@ function init(){
   // Chat
   dom['chat-send-btn'].addEventListener('click',sendChat);
   dom['chat-input'].addEventListener('keydown',function(e){ if(e.key==='Enter') sendChat(); });
+  
+  // Mobile Chat Integration
+  dom['mobile-chat-fab'].addEventListener('click', function(){
+    dom['mobile-chat-overlay'].classList.add('open');
+    dom['mobile-chat-badge'].classList.add('hidden');
+    App.lastChatRead = Date.now();
+  });
+  dom['mobile-chat-close'].addEventListener('click', function(){
+    dom['mobile-chat-overlay'].classList.remove('open');
+    App.lastChatRead = Date.now();
+  });
+  dom['mobile-chat-send'].addEventListener('click', function(){
+    dom['chat-input'].value = dom['mobile-chat-input'].value;
+    dom['mobile-chat-input'].value = '';
+    sendChat();
+  });
+  dom['mobile-chat-input'].addEventListener('keydown',function(e){ if(e.key==='Enter') dom['mobile-chat-send'].click(); });
+
+  dom['tab-chat-btn'].addEventListener('click',function(){ 
+    switchTab('chat'); 
+    App.lastChatRead = Date.now();
+  });
+
+  // History Controls
+  dom['hist-prev-btn'].addEventListener('click', function(){
+    if(App.viewIndex > 0) { App.viewIndex--; renderGameBoard(); updateGameUI(); }
+  });
+  dom['hist-next-btn'].addEventListener('click', function(){
+    if(App.viewIndex < App.history.length - 1) { App.viewIndex++; renderGameBoard(); updateGameUI(); }
+  });
+  dom['history-warning'].addEventListener('click', function(){
+    App.viewIndex = App.history.length - 1; renderGameBoard(); updateGameUI();
+  });
 
   // Guide
   dom['guide-skip-btn'].addEventListener('click',dismissGuide);
