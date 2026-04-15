@@ -422,6 +422,7 @@ function syncOnline(state){
   // sync history
   if(state.history && state.history.length > 0) { App.history = state.history; App.viewIndex = App.history.length - 1; }
   // sync chat
+  if(state.chat && state.chat.length > App.online.chatLen){
     App.online.chatLen = state.chat.length;
     renderChat(state.chat);
   }

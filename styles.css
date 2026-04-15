@@ -110,6 +110,14 @@ button{cursor:pointer}
 .btn-accent{color:#fff;background:linear-gradient(135deg,#c56a3a,#8e4520)}
 .btn-ghost,.tool-btn{color:var(--ink);background:rgba(255,255,255,.62);border-color:var(--line)}
 .btn-small{min-height:36px;padding:8px 14px;font-size:.88rem}
+.btn-soon { position:relative; overflow:hidden; opacity:.85; cursor:not-allowed !important; font-size:.88rem; padding:8px 16px; border:1px solid var(--line); color:var(--muted); }
+.btn-soon::after {
+  content: "Yakında"; position:absolute; inset:0; opacity:0;
+  background:var(--panel-strong); color:var(--gold-deep); font-weight:800;
+  display:flex; align-items:center; justify-content:center;
+  transition: opacity .15s ease-in-out;
+}
+.btn-soon:hover::after { opacity:1; }
 
 /* ═══════════════════════════════════════════
    SURFACES
