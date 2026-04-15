@@ -414,6 +414,6 @@ const server = http.createServer(async (request, response) => {
   }
 });
 
-server.listen(PORT, () => {
-  console.log(`Shadow Chess sunucusu hazır: http://localhost:${PORT}`);
+server.listen(PORT, "0.0.0.0", () => {
+  console.log(`Shadow Chess sunucusu hazır: http://0.0.0.0:${PORT}`);
 });
