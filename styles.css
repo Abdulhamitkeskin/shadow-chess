@@ -367,3 +367,9 @@ h3{font-size:1.15rem}
   .player-strip{flex-direction:column;align-items:flex-start}
   .capture-strip{width:100%}
 }
+
+/* ═══════════════════════════════════════════
+   LOADING EFFECTS
+   ═══════════════════════════════════════════ */
+.loading-overlay { display: none; position: fixed; inset: 0; align-items: center; justify-content: center; flex-direction: column; background: var(--panel); z-index: 999; }
+.loading-overlay.open { display: flex; }
