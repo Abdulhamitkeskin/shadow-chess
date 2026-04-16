@@ -128,7 +128,7 @@ function cacheDom(){
     'self-name','self-captured',
     'turn-badge','game-message',
     'hide-btn','extra-action-btn','rematch-btn','offer-draw-btn',
-    'chat-panel','chat-messages','chat-input','chat-send-btn',
+    'chat-panel','chat-messages','chat-input','chat-send-btn','chat-emoji-btn',
     'guide-panel','guide-title','guide-text','guide-skip-btn','guide-next-btn',
     'result-modal','result-kicker','result-title','result-text','result-primary','result-secondary',
     'promotion-modal','promotion-title','promotion-text','promotion-opts',
@@ -546,6 +546,12 @@ function updateGameUI(){
   dom['hide-btn'].disabled=!isMyTurn||view.over||!view.hideAvailable.self;
   dom['rematch-btn'].classList.toggle('hidden',!view.over);
   
+  if (App.mode === 'cpu') {
+     dom['chat-panel'].style.display = 'none';
+  } else {
+     dom['chat-panel'].style.display = 'flex';
+  }
+
   if (App.mode === 'online' && !view.over) {
      dom['offer-draw-btn'].classList.remove('hidden');
      var dr = App.online.state && App.online.state.drawOffer;
@@ -999,6 +1005,11 @@ function init(){
   dom['rematch-btn'].addEventListener('click',requestRematch);
 
   // Chat
+  dom['chat-emoji-btn'].addEventListener('click', function(){
+    var emojis = ['👍','😊','🤔','😅','😡','🤝'];
+    dom['chat-input'].value += emojis[Math.floor(Math.random()*emojis.length)];
+    dom['chat-input'].focus();
+  });
   dom['chat-send-btn'].addEventListener('click',sendChat);
   dom['chat-input'].addEventListener('keydown',function(e){ if(e.key==='Enter') sendChat(); });
   

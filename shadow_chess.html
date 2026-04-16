@@ -213,8 +213,8 @@
           <!-- Board Actions Row (Moved from sidebar for mobile accessibility) -->
           <div class="board-actions-row" style="display:flex; justify-content:space-between; align-items:center; margin-top:16px; gap:12px; flex-wrap:wrap;">
             <div class="history-controls-bottom" style="display:flex; gap:8px; flex:1; min-width:140px;">
-              <button class="btn btn-secondary history-btn" id="hist-prev-btn" style="flex:1; font-weight:bold;">&lt; Geri</button>
-              <button class="btn btn-secondary history-btn" id="hist-next-btn" style="flex:1; font-weight:bold;">İleri &gt;</button>
+              <button class="btn btn-secondary history-btn" id="hist-prev-btn" style="flex:1; font-weight:bold;">&lt;</button>
+              <button class="btn btn-secondary history-btn" id="hist-next-btn" style="flex:1; font-weight:bold;">&gt;</button>
             </div>
             <div class="game-actions" style="display:flex; gap:8px; flex:2; justify-content:flex-end; flex-wrap:wrap;">
               <button class="btn btn-accent btn-small" id="hide-btn" style="flex:1; min-width:100px;"></button>
@@ -232,8 +232,9 @@
           <div class="chat-area" id="chat-panel" style="display:flex; flex-direction:column; flex:1; min-height:0; margin-top:12px;">
             
             <div class="chat-messages" id="chat-messages" style="flex:1; overflow-y:auto;"></div>
-            <div class="chat-input-row" style="margin-top:8px;">
-              <input id="chat-input" type="text" placeholder="Gönder...">
+            <div class="chat-input-row" style="margin-top:8px; display:flex; gap:8px;">
+              <button class="btn btn-ghost btn-small" id="chat-emoji-btn" style="padding:0 8px; font-size:1.2rem;">😊</button>
+              <input id="chat-input" type="text" placeholder="Gönder..." style="flex:1; padding:8px; border-radius:8px; border:1px solid var(--line); background:rgba(255,255,255,0.7);">
               <button class="btn btn-ghost btn-small" id="chat-send-btn">&#10148;</button>
             </div>
           </div>

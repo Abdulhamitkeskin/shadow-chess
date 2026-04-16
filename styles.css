@@ -261,8 +261,8 @@ h3{font-size:1.15rem}
 .game-layout{display:grid;grid-template-columns:1fr 340px;gap:16px;height:calc(100vh - 70px);align-items:stretch}
 .game-board-panel,.game-sidebar{border-radius:22px;overflow:hidden}
 .game-board-panel{display:flex;flex-direction:column;min-height:0}
-.game-frame{margin:auto; min-height:0; display:flex; align-items:center; justify-content:center; width:min(100%, calc(100vh - 160px)); box-sizing:border-box;}
-.game-frame .board{width:100%;}
+.game-frame{margin:auto; aspect-ratio:1; display:flex; align-items:center; justify-content:center; width:min(100%, calc(100vh - 200px)); box-sizing:border-box;}
+.game-frame .board{width:100%; height:100%;}
 
 /* ── Player strips ──────────────────────── */
 .player-strip{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:4px 0}
