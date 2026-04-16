@@ -127,15 +127,16 @@ function cacheDom(){
     'enemy-name','enemy-captured','game-board',
     'self-name','self-captured',
     'turn-badge','game-message',
-    'hide-btn','extra-action-btn','rematch-btn',
-    'tab-moves-btn','tab-chat-btn','moves-panel','chat-panel',
-    'move-log','chat-messages','chat-input','chat-send-btn',
+    'hide-btn','extra-action-btn','rematch-btn','offer-draw-btn',
+    'chat-panel','chat-messages','chat-input','chat-send-btn',
     'guide-panel','guide-title','guide-text','guide-skip-btn','guide-next-btn',
     'result-modal','result-kicker','result-title','result-text','result-primary','result-secondary',
     'promotion-modal','promotion-title','promotion-text','promotion-opts',
     'toast',
     'settings-open-btn','settings-modal','settings-close-btn','bg-theme-picker',
-    'hist-prev-btn','hist-next-btn','history-warning'
+    'hist-prev-btn','hist-next-btn','history-warning',
+    'survey-modal','survey-q1','survey-q2','survey-q3','survey-q4','survey-skip-btn','survey-send-btn',
+    'loading-overlay'
   ];
   ids.forEach(function(id){ dom[id] = $(id); });
 }
@@ -180,7 +181,7 @@ function setLang(lang){
   localStorage.setItem('shadow-lang', lang);
   applyTexts();
   if(App.activeScreen==='setup-screen'){ renderPalette(); updateSetupHeld(); updateSetupStatus(); }
-  if(App.activeScreen==='game-screen'){ updateGameUI(); renderMoveLog(); }
+  if(App.activeScreen==='game-screen'){ updateGameUI(); }
   if(App.activeScreen==='tutorial-screen'){ renderTutStep(); }
   updateGuide();
 }
@@ -460,7 +461,7 @@ function startCpuGame(){
     var firstState = Engine.serializeGameForPlayer(App.localGame, App.localPlayerColor);
     App.history.push(firstState); App.viewIndex = 0;
   } catch(e){ showToast(e.message,true); return; }
-  showScreen('game-screen'); renderGameBoard(); updateGameUI(); renderMoveLog(); updateGuide();
+  showScreen('game-screen'); renderGameBoard(); updateGameUI(); updateGuide();
   if(App.localGame.turn!==color) scheduleCpu();
 }
 
@@ -481,7 +482,7 @@ function scheduleCpu(){
         App.history.push(state); App.viewIndex = App.history.length - 1;
       }
     }
-    renderGameBoard(); updateGameUI(); renderMoveLog();
+    renderGameBoard(); updateGameUI();
     if(App.localGame.over) setTimeout(showResult,500);
   }, 700);
 }
@@ -539,19 +540,29 @@ function updateGameUI(){
   if(view.over){
     if(view.result==='checkmate') msg=td('checkmate');
     else if(view.result==='king-capture') msg=td('kingCapture');
-    else if(view.result==='stalemate') msg=td('stalemate');
+    else if(view.result==='stalemate'||view.result==='draw') msg=td('stalemate');
   } else if(view.check&&view.check.self) msg=td('check');
   dom['game-message'].textContent=msg;
   dom['hide-btn'].disabled=!isMyTurn||view.over||!view.hideAvailable.self;
   dom['rematch-btn'].classList.toggle('hidden',!view.over);
-  // chat tab visibility (only online)
-  if(App.mode!=='online' && dom['tab-chat-btn'].classList.contains('active')) {
-     dom['tab-chat-btn'].classList.remove('active');
-     dom['tab-moves-btn'].classList.add('active');
-     dom['chat-panel'].classList.remove('active');
-     dom['moves-panel'].classList.add('active');
+  
+  if (App.mode === 'online' && !view.over) {
+     dom['offer-draw-btn'].classList.remove('hidden');
+     var dr = App.online.state && App.online.state.drawOffer;
+     if (!dr) {
+       dom['offer-draw-btn'].textContent = "Beraberlik Teklif Et";
+       dom['offer-draw-btn'].disabled = false;
+     } else if (dr === color) {
+       dom['offer-draw-btn'].textContent = "Beraberlik Bekleniyor...";
+       dom['offer-draw-btn'].disabled = true;
+     } else {
+       dom['offer-draw-btn'].textContent = "Beraberliği Kabul Et";
+       dom['offer-draw-btn'].disabled = false;
+     }
+  } else {
+     dom['offer-draw-btn'].classList.add('hidden');
   }
-  dom['tab-chat-btn'].style.display = App.mode==='online' ? '' : 'none';
+
   // captured
   renderCaptured(view.capturedBy, color);
   
@@ -667,7 +678,7 @@ function attemptMove(from,to,promotionChoice){
       var state = Engine.serializeGameForPlayer(App.localGame, App.localPlayerColor);
       App.history.push(state); App.viewIndex = App.history.length - 1;
       AudioFX.play(lm.captured ? 'capture' : 'move');
-      renderGameBoard(); updateGameUI(); renderMoveLog();
+      renderGameBoard(); updateGameUI();
       if(App.localGame.over) setTimeout(showResult,500);
       else scheduleCpu();
     } else { showToast(r.error,true); }
@@ -895,13 +906,16 @@ function showResult(){
 function closeResult(){ dom['result-modal'].classList.remove('open'); }
 
 /* ═══════════════════════════════════════════════════════════════
-   15.  TABS
+   15.  DRAW OFFER
    ═══════════════════════════════════════════════════════════════ */
-function switchTab(tabId){
-  dom['tab-moves-btn'].classList.toggle('active', tabId==='moves');
-  dom['tab-chat-btn'].classList.toggle('active', tabId==='chat');
-  dom['moves-panel'].classList.toggle('active', tabId==='moves');
-  dom['chat-panel'].classList.toggle('active', tabId==='chat');
+function handleDrawAction() {
+  if (App.mode !== 'online') return;
+  var dr = App.online.state.drawOffer;
+  if (!dr) {
+    apiPost('rooms/' + App.online.roomId + '/draw-offer', { token: App.online.token });
+  } else if (dr !== myColor()) {
+    apiPost('rooms/' + App.online.roomId + '/draw-accept', { token: App.online.token });
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -909,7 +923,7 @@ function switchTab(tabId){
    ═══════════════════════════════════════════════════════════════ */
 function goToMenu(){
   stopPolling(); clearTimeout(App.cpuTimer); closeResult(); clearSel();
-  App.mode=null; App.localGame=null; App.setup.ready=false; App.moveLog=[];
+  App.mode=null; App.localGame=null; App.setup.ready=false;
   App.online={ roomId:null, token:null, color:null, state:null, chatLen:0 };
   App.history=[]; App.viewIndex=-1;
   showScreen('menu-screen'); dom['menu-status'].textContent=''; updateGuide();
@@ -980,24 +994,14 @@ function init(){
 
   // Game
   dom['hide-btn'].addEventListener('click',activateFog);
+  dom['offer-draw-btn'].addEventListener('click', handleDrawAction);
   dom['extra-action-btn'].addEventListener('click',goToMenu);
   dom['rematch-btn'].addEventListener('click',requestRematch);
-
-  // Tabs
-  dom['tab-moves-btn'].addEventListener('click',function(){ switchTab('moves'); });
-  dom['tab-chat-btn'].addEventListener('click',function(){ switchTab('chat'); });
 
   // Chat
   dom['chat-send-btn'].addEventListener('click',sendChat);
   dom['chat-input'].addEventListener('keydown',function(e){ if(e.key==='Enter') sendChat(); });
   
-  // Mobile Chat Integration has been moved to main chat tab
-  
-  dom['tab-chat-btn'].addEventListener('click',function(){ 
-    switchTab('chat'); 
-    App.lastChatRead = Date.now();
-  });
-
   // History Controls
   dom['hist-prev-btn'].addEventListener('click', function(){
     if(App.viewIndex > 0) { App.viewIndex--; renderGameBoard(); updateGameUI(); }
@@ -1015,7 +1019,37 @@ function init(){
 
   // Result
   dom['result-primary'].addEventListener('click',requestRematch);
-  dom['result-secondary'].addEventListener('click',goToMenu);
+  dom['result-secondary'].addEventListener('click',function(){
+     closeResult();
+     if(App.mode === 'online' && !localStorage.getItem('shadow-survey-done')){
+       dom['survey-modal'].classList.add('open');
+     } else {
+       goToMenu();
+     }
+  });
+
+  // Survey
+  dom['survey-skip-btn'].addEventListener('click', function(){
+     localStorage.setItem('shadow-survey-done', '1');
+     dom['survey-modal'].classList.remove('open');
+     goToMenu();
+  });
+  dom['survey-send-btn'].addEventListener('click', function(){
+     fetch('/api/surveys', {
+        method: 'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          q1: dom['survey-q1'].value,
+          q2: dom['survey-q2'].value,
+          q3: dom['survey-q3'].value,
+          q4: dom['survey-q4'].value
+        })
+     });
+     localStorage.setItem('shadow-survey-done', '1');
+     dom['survey-modal'].classList.remove('open');
+     showToast("Geri bildiriminiz için teşekkürler!");
+     goToMenu();
+  });
 
   // URL auto-join
   var params=new URLSearchParams(window.location.search);

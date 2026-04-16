@@ -182,6 +182,7 @@ function serializeRoomState(room, color, origin) {
     color,
     players: playersMeta(room),
     message: room.message,
+    drawOffer: room.drawOffer || null,
     game: Engine.serializeGameForPlayer(room.game, color),
     moveLog: room.moveLog || [],
     chat: room.chat || [],
@@ -235,6 +236,31 @@ async function handleApi(request, response, url) {
       token: room.players.white.token,
       state: serializeRoomState(room, "white", origin),
     });
+    return true;
+  }
+
+  if (request.method === "POST" && pathname === "/api/surveys") {
+    try {
+      const body = await parseBody(request);
+      const filePath = path.join(ROOT, "surveys.json");
+      let surveys = fs.existsSync(filePath) ? JSON.parse(fs.readFileSync(filePath, "utf8")) : [];
+      surveys.push({ time: Date.now(), q1: body.q1, q2: body.q2, q3: body.q3, q4: body.q4 });
+      fs.writeFileSync(filePath, JSON.stringify(surveys, null, 2));
+      json(response, 200, { ok: true });
+    } catch (e) {
+      json(response, 500, { error: "Anket kaydedilemedi." });
+    }
+    return true;
+  }
+
+  if (request.method === "GET" && pathname === "/api/admin/surveys") {
+    try {
+      const filePath = path.join(ROOT, "surveys.json");
+      const surveys = fs.existsSync(filePath) ? JSON.parse(fs.readFileSync(filePath, "utf8")) : [];
+      json(response, 200, { surveys });
+    } catch (e) {
+      json(response, 500, { error: "Veri okunamadı." });
+    }
     return true;
   }
 
@@ -371,7 +397,27 @@ async function handleApi(request, response, url) {
     room.ready.black = false;
     room.moveLog = [];
     room.chat = [];
+    room.drawOffer = null;
     room.message = "Yeni maç için taş dizilimlerini tekrar onaylayın.";
+    json(response, 200, serializeRoomState(room, color, origin));
+    return true;
+  }
+
+  if (request.method === "POST" && segments[3] === "draw-offer") {
+    room.drawOffer = color;
+    room.message = color === "white" ? "Beyaz oyuncu beraberlik teklif etti." : "Siyah oyuncu beraberlik teklif etti.";
+    json(response, 200, serializeRoomState(room, color, origin));
+    return true;
+  }
+
+  if (request.method === "POST" && segments[3] === "draw-accept") {
+    if (room.drawOffer && room.drawOffer !== color) {
+      room.game.isOver = true;
+      room.game.winner = null;
+      room.game.result = "draw";
+      room.message = "Beraberlik sağlandı.";
+      room.drawOffer = null;
+    }
     json(response, 200, serializeRoomState(room, color, origin));
     return true;
   }

@@ -60,6 +60,16 @@ body[data-bg-theme="white"] {
   --ink: #111111;
   --panel: rgba(250,250,250,.95);
 }
+.logo-spinner {
+  width: 72px;
+  height: 72px;
+  animation: spinLogo 2s linear infinite;
+  display: block;
+  margin: 0 auto;
+}
+@keyframes spinLogo {
+  100% { transform: rotateY(360deg); }
+}
 
 /* ── Reset ──────────────────────────────── */
 *{box-sizing:border-box}
@@ -188,8 +198,8 @@ h3{font-size:1.15rem}
    SETUP SCREEN
    ═══════════════════════════════════════════ */
 .panel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:14px}
-.setup-stage{display:grid;grid-template-columns:minmax(0,1.06fr) minmax(280px,340px);gap:18px}
-.setup-sidebar{display:grid;gap:12px;align-content:start}
+.setup-stage{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(260px,310px);gap:16px}
+.setup-sidebar{display:grid;gap:8px;align-content:start}
 .board-zone{min-width:0}
 
 /* ── Board frame ────────────────────────── */
@@ -225,12 +235,12 @@ h3{font-size:1.15rem}
 .palette-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:10px}
 .palette-label{margin:0;font-weight:800;font-size:.92rem}
 .palette-copy{margin:4px 0 0;font-size:.85rem}
-.piece-palette{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-.palette-piece{display:grid;justify-items:center;gap:4px;padding:10px 8px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.72)}
+.piece-palette{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.palette-piece{display:grid;justify-items:center;gap:2px;padding:6px 6px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.72)}
 .palette-piece.active{border-color:rgba(42,111,151,.42);box-shadow:inset 0 0 0 1px rgba(42,111,151,.24)}
 .palette-piece.empty{opacity:.4}
-.palette-count{font-size:.74rem;font-weight:800;color:var(--muted)}
-.held-piece{min-height:20px;margin:10px 0 0;font-size:.88rem}
+.palette-count{font-size:.7rem;font-weight:800;color:var(--muted)}
+.held-piece{min-height:18px;margin:8px 0 0;font-size:.84rem}
 .hidden{display:none!important}
 
 /* ═══════════════════════════════════════════
@@ -251,7 +261,7 @@ h3{font-size:1.15rem}
 .game-layout{display:grid;grid-template-columns:1fr 340px;gap:16px;height:calc(100vh - 70px);align-items:stretch}
 .game-board-panel,.game-sidebar{border-radius:22px;overflow:hidden}
 .game-board-panel{display:flex;flex-direction:column;min-height:0}
-.game-frame{margin:auto; min-height:0; display:flex; align-items:center; justify-content:center; width:min(100%, calc(100vh - 230px)); box-sizing:border-box;}
+.game-frame{margin:auto; min-height:0; display:flex; align-items:center; justify-content:center; width:min(100%, calc(100vh - 160px)); box-sizing:border-box;}
 .game-frame .board{width:100%;}
 
 /* ── Player strips ──────────────────────── */

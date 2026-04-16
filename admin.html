@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Shadow Chess - Anket Sonuçları</title>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0; padding: 20px; font-family: 'Manrope', sans-serif;
+      background: #fbf7ef; color: #26211d;
+    }
+    .container {
+      max-width: 1000px; margin: 0 auto;
+      background: rgba(255,252,245,0.9); padding: 30px;
+      border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+      border: 1px solid rgba(0,0,0,0.05);
+    }
+    h1 {
+      margin-top: 0; color: #8d5c20; border-bottom: 2px solid #dfd2b8;
+      padding-bottom: 10px;
+    }
+    table {
+      width: 100%; border-collapse: collapse; margin-top: 20px;
+    }
+    th, td {
+      padding: 12px; text-align: left; border-bottom: 1px solid #dfd2b8;
+    }
+    th {
+      background: #ede2cf; font-weight: 800;
+    }
+    tr:hover {
+      background: rgba(0,0,0,0.02);
+    }
+    .date {
+      color: #655d53; font-size: 0.85em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Gölge Satrancı - Anket Sonuçları</h1>
+    <div id="stats" style="margin-bottom: 20px; font-weight:600;">Yükleniyor...</div>
+    <table id="survey-table">
+      <thead>
+        <tr>
+          <th>Tarih</th>
+          <th>Oyunu nasıl buldunuz?</th>
+          <th>Önerir misiniz?</th>
+          <th>Satranç Geçmişiniz?</th>
+          <th>Ek Tavsiyeler</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script>
+    async function loadSurveys() {
+      try {
+        const res = await fetch('/api/admin/surveys');
+        if (!res.ok) throw new Error("Veri çekilemedi.");
+        const data = await res.json();
+        
+        const tbody = document.querySelector('#survey-table tbody');
+        document.getElementById('stats').textContent = `Toplam ${data.surveys.length} yanıt bulundu.`;
+
+        // Sort descending
+        data.surveys.sort((a,b) => b.time - a.time);
+
+        for (const s of data.surveys) {
+          const tr = document.createElement('tr');
+          const d = new Date(s.time).toLocaleString('tr-TR');
+          
+          tr.innerHTML = `
+            <td class="date">${d}</td>
+            <td>${s.q1 || '-'}</td>
+            <td>${s.q2 || '-'}</td>
+            <td>${s.q3 || '-'}</td>
+            <td>${s.q4 || '-'}</td>
+          `;
+          tbody.appendChild(tr);
+        }
+      } catch (err) {
+        document.getElementById('stats').textContent = `Hata: ${err.message}`;
+      }
+    }
+    loadSurveys();
+  </script>
+</body>
+</html>

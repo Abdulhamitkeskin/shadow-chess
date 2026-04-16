@@ -15,8 +15,9 @@
 
   <div class="topbar">
     <div class="brand-mini">
-      <span class="brand-mark">SC</span>
+      <img src="logo_chess.png" alt="Shadow Chess Logo" style="height:32px; width:auto; border-radius:6px;">
       <span class="brand-name">Shadow Chess</span>
+      <span style="background:var(--danger); color:white; padding:2px 8px; border-radius:4px; font-size:0.65rem; font-weight:800; letter-spacing:0.1em; margin-left:8px;">BETA</span>
     </div>
     <div class="settings-toggle">
       <button class="settings-toggle-btn" id="settings-open-btn">⚙</button>
@@ -51,7 +52,7 @@
           <div class="faq-section" style="margin-top: 30px; text-align:left;">
             <details class="faq-item">
               <summary>Gölge Satrancı Nedir?</summary>
-              <p>Klasik satrancın heyecanlı ve sisli bir versiyonudur. Düşman taşlarını sadece hareket ettiklerinde veya yakınınıza geldiklerinde görebilirsiniz.</p>
+              <p>Gerçekçi bir savaş simülasyonu mantığıyla tasarlanmış satrançtır. Normalde iki ordu karşılaştığında komutanlar düşman birimlerinin her birinin anlık yerini bilemez. Görmek istiyorsanız birliklerinizi ileri sürüp keşif yapmalısınız; fakat bu da taş kayıplarına yol açabilir! Düşman taşlarını ancak kendi görüş alanınıza veya hareket menzilinize girdiklerinde fark edebilirsiniz.</p>
             </details>
             <details class="faq-item">
               <summary>Savaş Sisi (Görüş Alanı) Nedir?</summary>
@@ -214,32 +215,23 @@
           <span class="turn-badge" id="turn-badge"></span>
           <p class="game-message" id="game-message"></p>
 
-          <div class="game-actions">
+          <div class="game-actions" style="margin-top:auto;">
             <button class="btn btn-accent btn-small" id="hide-btn"></button>
+            <button class="btn btn-ghost btn-small" id="offer-draw-btn">Beraberlik Teklif Et</button>
             <button class="btn btn-ghost btn-small" id="extra-action-btn"></button>
             <button class="btn btn-ghost btn-small hidden" id="rematch-btn"></button>
           </div>
 
-          <div class="sidebar-tabs">
-            <button class="tab-btn active" id="tab-moves-btn"></button>
-            <button class="tab-btn" id="tab-chat-btn"></button>
-          </div>
-
-          <div class="tab-content">
-            <div class="tab-pane active" id="moves-panel" style="display:flex; flex-direction:column; flex:1;">
-              <div class="move-log" id="move-log" style="flex:1;"></div>
-              
-              <div class="history-controls-bottom" style="display:flex; justify-content:center; gap:10px; margin-top:8px; border-top:1px solid var(--line); padding-top:10px;">
-                <button class="btn btn-secondary history-btn" id="hist-prev-btn" style="flex:1;">&lt;</button>
-                <button class="btn btn-secondary history-btn" id="hist-next-btn" style="flex:1;">&gt;</button>
-              </div>
+          <div class="chat-area" id="chat-panel" style="display:flex; flex-direction:column; flex:1; min-height:0; margin-top:12px;">
+            <div class="history-controls-bottom" style="display:flex; justify-content:center; gap:10px; margin-bottom:12px; border-bottom:1px solid var(--line); padding-bottom:12px;">
+              <button class="btn btn-secondary history-btn" id="hist-prev-btn" style="flex:1;">&lt;</button>
+              <button class="btn btn-secondary history-btn" id="hist-next-btn" style="flex:1;">&gt;</button>
             </div>
-            <div class="tab-pane" id="chat-panel">
-              <div class="chat-messages" id="chat-messages"></div>
-              <div class="chat-input-row">
-                <input id="chat-input" type="text">
-                <button class="btn btn-ghost btn-small" id="chat-send-btn"></button>
-              </div>
+            
+            <div class="chat-messages" id="chat-messages" style="flex:1; overflow-y:auto;"></div>
+            <div class="chat-input-row" style="margin-top:8px;">
+              <input id="chat-input" type="text" placeholder="Gönder...">
+              <button class="btn btn-ghost btn-small" id="chat-send-btn">&#10148;</button>
             </div>
           </div>
 
@@ -317,6 +309,56 @@
         <button class="btn btn-primary" id="settings-close-btn" style="width:100%;">Geri Dön (Kapat)</button>
       </div>
     </div>
+  </div>
+
+  <!-- SURVEY MODAL -->
+  <div class="modal-overlay" id="survey-modal">
+    <div class="modal-card" style="max-width: 440px;">
+      <h2 style="font-family:'Fraunces',serif; margin-bottom:10px; color:var(--gold-deep);">Maç Sonucu Değerlendirme</h2>
+      <p style="color:var(--muted); font-size:0.9rem; margin-bottom:20px;">Gölge Satrancı deneyiminizi geliştirmemiz için kısacık geri bildiriminizi alabilir miyiz?</p>
+      
+      <div class="survey-form" style="display:flex; flex-direction:column; gap:16px; text-align:left;">
+        <div>
+          <label style="font-weight:700; font-size:0.9rem; margin-bottom:6px; display:block;">1. Oyunu genel olarak nasıl buldunuz?</label>
+          <select id="survey-q1" class="survey-input" style="width:100%; padding:8px; border-radius:8px; border:1px solid var(--line); background:var(--panel);">
+            <option value="mukemmel">Harika, çok sürükleyici</option>
+            <option value="iyi">İyi ama bazı eksikleri var</option>
+            <option value="karisik">Kurallara alışmak zor oldu</option>
+            <option value="kotu">Hiç keyif almadım</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-weight:700; font-size:0.9rem; margin-bottom:6px; display:block;">2. Gölge Satrancını başkalarına önerir misiniz?</label>
+          <select id="survey-q2" class="survey-input" style="width:100%; padding:8px; border-radius:8px; border:1px solid var(--line); background:var(--panel);">
+            <option value="evet">Kesinlikle evet</option>
+            <option value="belki">Emin değilim</option>
+            <option value="hayir">Hayır, önermem</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-weight:700; font-size:0.9rem; margin-bottom:6px; display:block;">3. Satranç geçmişiniz ne düzeyde?</label>
+          <select id="survey-q3" class="survey-input" style="width:100%; padding:8px; border-radius:8px; border:1px solid var(--line); background:var(--panel);">
+            <option value="profesyonel">Profesyonel / Sık oynarım</option>
+            <option value="orta">Orta seviye / Arada oynarım</option>
+            <option value="baslangic">Yeni öğreniyorum / Sadece kuralları biliyorum</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-weight:700; font-size:0.9rem; margin-bottom:6px; display:block;">4. Eklemek istediğiniz bir tavsiye/hata bildirimi var mı?</label>
+          <textarea id="survey-q4" rows="2" style="width:100%; padding:8px; border-radius:8px; border:1px solid var(--line); background:var(--panel); resize:vertical;" placeholder="(İsteğe bağlı)"></textarea>
+        </div>
+      </div>
+      
+      <div class="modal-actions" style="margin-top:24px; justify-content:flex-end;">
+         <button class="btn btn-ghost" id="survey-skip-btn">Atla</button>
+         <button class="btn btn-primary" id="survey-send-btn">Yanıtları Gönder</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="loading-overlay" id="loading-overlay">
+    <img src="logo_chess.png" class="logo-spinner" alt="Loading Logo">
+    <h2 style="margin-top:16px; font-size:1.2rem; letter-spacing:0.1em; color:var(--gold-deep); text-shadow:0 0 10px rgba(0,0,0,0.5);">BAĞLANILIYOR...</h2>
   </div>
 
   <div class="toast" id="toast"></div>
