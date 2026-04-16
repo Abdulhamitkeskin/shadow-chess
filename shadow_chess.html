@@ -209,24 +209,27 @@
             </div>
             <div class="capture-strip" id="self-captured"></div>
           </div>
+
+          <!-- Board Actions Row (Moved from sidebar for mobile accessibility) -->
+          <div class="board-actions-row" style="display:flex; justify-content:space-between; align-items:center; margin-top:16px; gap:12px; flex-wrap:wrap;">
+            <div class="history-controls-bottom" style="display:flex; gap:8px; flex:1; min-width:140px;">
+              <button class="btn btn-secondary history-btn" id="hist-prev-btn" style="flex:1; font-weight:bold;">&lt; Geri</button>
+              <button class="btn btn-secondary history-btn" id="hist-next-btn" style="flex:1; font-weight:bold;">İleri &gt;</button>
+            </div>
+            <div class="game-actions" style="display:flex; gap:8px; flex:2; justify-content:flex-end; flex-wrap:wrap;">
+              <button class="btn btn-accent btn-small" id="hide-btn" style="flex:1; min-width:100px;"></button>
+              <button class="btn btn-ghost btn-small" id="offer-draw-btn" style="flex:1; min-width:100px;">Beraberlik</button>
+              <button class="btn btn-ghost btn-small" id="extra-action-btn" style="flex:1; min-width:100px;"></button>
+              <button class="btn btn-ghost btn-small hidden" id="rematch-btn" style="flex:1; min-width:100px;"></button>
+            </div>
+          </div>
         </article>
 
-        <aside class="game-sidebar panel-surface">
+        <aside class="game-sidebar panel-surface" style="display:flex; flex-direction:column;">
           <span class="turn-badge" id="turn-badge"></span>
           <p class="game-message" id="game-message"></p>
 
-          <div class="game-actions" style="margin-top:auto;">
-            <button class="btn btn-accent btn-small" id="hide-btn"></button>
-            <button class="btn btn-ghost btn-small" id="offer-draw-btn">Beraberlik Teklif Et</button>
-            <button class="btn btn-ghost btn-small" id="extra-action-btn"></button>
-            <button class="btn btn-ghost btn-small hidden" id="rematch-btn"></button>
-          </div>
-
           <div class="chat-area" id="chat-panel" style="display:flex; flex-direction:column; flex:1; min-height:0; margin-top:12px;">
-            <div class="history-controls-bottom" style="display:flex; justify-content:center; gap:10px; margin-bottom:12px; border-bottom:1px solid var(--line); padding-bottom:12px;">
-              <button class="btn btn-secondary history-btn" id="hist-prev-btn" style="flex:1;">&lt;</button>
-              <button class="btn btn-secondary history-btn" id="hist-next-btn" style="flex:1;">&gt;</button>
-            </div>
             
             <div class="chat-messages" id="chat-messages" style="flex:1; overflow-y:auto;"></div>
             <div class="chat-input-row" style="margin-top:8px;">
